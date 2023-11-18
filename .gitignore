@@ -1,0 +1,9 @@
+# code execution
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# other
+test.py
+*.bat
