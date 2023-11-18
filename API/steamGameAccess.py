@@ -1,5 +1,6 @@
 import winreg
 import os
+import shutil
 
 
 def find_steam_folder_path() -> (str | None):
@@ -83,4 +84,25 @@ def find_game_path(game_folder_name) -> (str | None):
         if os.path.exists(full_path):
             return full_path
     return None
+
+
+def copy_data_in_steam_game_folder(game_folder_name, data_to_copy, overwrite=True) -> int:
+    game_path = find_game_path(game_folder_name)
+    if game_path is None:
+        return -1
+    if os.path.isfile(data_to_copy) and overwrite:
+        shutil.copy(data_to_copy, find_game_path(game_path))
+
+    for root, dirs, files in os.walk(data_to_copy):
+        paste_folder = game_path + root[len(data_to_copy):]
+        print("paste folder " + paste_folder)
+        if not os.path.exists(paste_folder):
+            os.makedirs(paste_folder)
+        print("root " + root)
+        for dir in dirs:
+            print("dir " + dir)
+        for file in files:
+            if overwrite or not os.path.exists(os.path.join(paste_folder, file)):
+                shutil.copy(os.path.join(root, file), paste_folder)
+    return 0
 
