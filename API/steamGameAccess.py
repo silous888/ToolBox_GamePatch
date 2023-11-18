@@ -173,9 +173,10 @@ def copy_data_from_steam_game_folder(game_folder_name, dest, data_to_copy="", ov
     if not os.path.exists(os.path.join(game_path, data_to_copy)):
         return -7
     path_data_to_copy = os.path.join(game_path, data_to_copy)
-    if (os.path.isfile(data_to_copy) and (overwrite or
+    print(path_data_to_copy)
+    if (os.path.isfile(path_data_to_copy) and (overwrite or
        (not os.path.exists(os.path.join(dest, os.path.basename(data_to_copy)))))):
-        shutil.copy(data_to_copy, dest)
+        shutil.copy(path_data_to_copy, dest)
 
     for root, _, files in os.walk(path_data_to_copy):
         paste_folder = os.path.join(dest, root[len(path_data_to_copy):])
