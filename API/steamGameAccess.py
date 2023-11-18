@@ -2,7 +2,7 @@ import winreg
 import os
 
 
-def find_steam_folder() -> (str | None):
+def find_steam_folder_path() -> (str | None):
     """Find where steam is located on windows
 
     Returns:
@@ -17,7 +17,7 @@ def find_steam_folder() -> (str | None):
         return None
 
 
-def find_steam_library_folders() -> (list[str] | None):
+def find_steam_library_folders_path() -> (list[str] | None):
     """Find every steam game library
 
     Returns:
@@ -48,7 +48,7 @@ def find_steam_library_folders() -> (list[str] | None):
         return line[start_index:end_index].replace("\\\\", "\\")
 
     # Start of find_steam_library_folders
-    steam_folder = find_steam_folder()
+    steam_folder = find_steam_folder_path()
     if steam_folder is None:
         return None
     game_folders = []
@@ -62,3 +62,25 @@ def find_steam_library_folders() -> (list[str] | None):
     else:
         return None
     return game_folders
+
+
+def find_game_path(game_folder_name) -> (str | None):
+    """find path of a steam game
+
+    Args:
+        game_folder_name (str): exact name of the steam game folder
+
+    Returns:
+        str: path of the folder game, None if not founded, or no library folders
+    """
+    library_folders = find_steam_library_folders_path()
+    if library_folders is None:
+        return None
+
+    EXTRA_PATH = "\\steamapps\\common\\"
+    for folder in library_folders:
+        full_path = folder + EXTRA_PATH + game_folder_name
+        if os.path.exists(full_path):
+            return full_path
+    return None
+
