@@ -8,9 +8,9 @@ In the **doc** folder, you will find HTML documentation for every file in the **
 
 ### Short Description of Every Element
 
-**steamGameAccess.py**: This file contains functions to automatically locate specific Steam game folders and copy content to or from them.
+**steamGameAPI.py**: This file contains functions to automatically locate specific Steam game folders and copy content to or from them.
 
-## API: steamGameAccess.py
+## API: steamGameAPI.py
 
 This file includes all the functions necessary to find the location of a Steam game folder and to copy data to or from the game folder. Here is a brief explanation of functions you will likely need, but more details can be found in the HTML documentation.
 
@@ -18,7 +18,7 @@ This file includes all the functions necessary to find the location of a Steam g
 To use it, download the file and, in your Python script, include the following:
 
 ```python
-import steamGameAccess as sga
+import steamGameAPI as sga
 ```
 You can now access functions in the file using `sga.function_name()`.
 
