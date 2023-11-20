@@ -6,5 +6,12 @@ __pycache__/
 
 # other
 test.py
+
+# file type
 *.bat
 *.json
+*.txt
+*.xdelta
+
+# external software
+xdelta3.exe
