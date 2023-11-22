@@ -79,23 +79,45 @@ def create_patch(original_file, patched_file, name_patch_file="", patch_path="",
     if overwrite:
         command.insert(1, "-f")
     output = sp.run(command, stdout=sp.PIPE, creationflags=sp.CREATE_NO_WINDOW)
-    if output.returncode == 1:
+    if output.returncode != 0:
         return -5
     return output.returncode
 
 
 def apply_patch(file_to_patch, patch_file, name_patched_file="") -> (int):
-    """by default, overwrite the file
-    otherwise, specify the name of the patched file
-    return error code if trying to patch a wrong file
+    """Create a xdelta3 patch file
+
+    Args:
+        file_no_patch (str): original file path
+        file_patched (str): patched file path, so original file with modifications
+        name_patch_file (str, optional): patch file name without ".xdelta" part. Defaults, name of file_no_patch.
+        path_patch (str, optional): path of patch file. Defaults to exec repertory.
+        overwrite (bool, optional): overwrite or not patch file. Defaults to True.
+
+    Returns:
+        int: 0 if the patch file is created, otherwise, return an error code.
+
+    error code:<br>
+    -1 if Xdelta3.exe is not found<br>
+    -2 if "file_to_patch" is not found or is not a file<br>
+    -3 if "patch_file" is not found or is not a file<br>
+    -4 if the command has a problem
     """
     def overwrite_original_file():
         os.remove(file_to_patch)
         sleep(0.3)
         os.rename(name_patched_file, file_to_patch)
 
+    if XDELTA_PATH != "" and not os.path.exists(XDELTA_PATH):
+        return -1
+    if not os.path.exists(file_to_patch) or not os.path.isfile(file_to_patch):
+        return -2
+    if not os.path.exists(patch_file) or not os.path.isfile(patch_file):
+        return -3
+
     overwrite = False
-    if name_patched_file == "":
+
+    if len(name_patched_file) == 0:
         splitname = os.path.splitext(os.path.basename(file_to_patch))
         name_patched_file = os.path.dirname(file_to_patch) + splitname[0] + "n" + splitname[1]
         overwrite = True
@@ -113,4 +135,6 @@ def apply_patch(file_to_patch, patch_file, name_patched_file="") -> (int):
 
     if overwrite and process.returncode == 0:
         overwrite_original_file()
+    if process.returncode != 0:
+        return -4
     return process.returncode
