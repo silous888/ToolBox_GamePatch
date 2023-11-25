@@ -1,7 +1,8 @@
 from oauth2client.service_account import ServiceAccountCredentials as sac
 from googleapiclient.discovery import build
-# from googleapiclient.http import MediaIoBaseDownload
+from googleapiclient.http import MediaIoBaseDownload
 
+import io
 import os
 
 try:
@@ -78,3 +79,44 @@ def list_files() -> (list[list[str]] | int):
             file.get('mimeType', 'N/A')
         ])
     return file_info_list
+
+
+def download_file(file_id, local_folder=".\\"):
+    """download a file from google drive, by id
+
+    Args:
+        file_id (str): id of the file
+        local_folder (str, optional): path where the file will be. Defaults to ".\".
+    """
+    def download_google_sheet_as_excel(file_metadata, local_folder):
+        local_path = os.path.join(local_folder, file_metadata['name'] + '.xlsx')
+        export_params = {'mimeType': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}
+        request = drive_service.files().export_media(fileId=file_metadata['id'], mimeType=export_params['mimeType'])
+        return request, local_path
+
+    def download_google_doc_as_word(file_metadata, local_folder):
+        local_path = os.path.join(local_folder, file_metadata['name'] + '.docx')
+        export_params = {'mimeType': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}
+        request = drive_service.files().export_media(fileId=file_metadata['id'], mimeType=export_params['mimeType'])
+        return request, local_path
+
+    file_metadata = drive_service.files().get(fileId=file_id).execute()
+
+    if file_metadata['mimeType'].startswith('application/vnd.google-apps'):
+        if 'application/vnd.google-apps.spreadsheet' in file_metadata['mimeType']:
+            request, local_path = download_google_sheet_as_excel(file_metadata, local_folder)
+        elif 'application/vnd.google-apps.document' in file_metadata['mimeType']:
+            request, local_path = download_google_doc_as_word(file_metadata, local_folder)
+        else:
+            return -1
+    else:
+        request = drive_service.files().get_media(fileId=file_id)
+        file_name = file_metadata['name']
+        local_path = os.path.join(local_folder, file_name)
+
+    with io.FileIO(local_path, 'wb') as fh:
+        downloader = MediaIoBaseDownload(fh, request)
+        done = False
+        while not done:
+            _, done = downloader.next_chunk()
+    return 0
