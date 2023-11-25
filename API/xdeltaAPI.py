@@ -15,7 +15,7 @@ xdelta command in shell
 """
 
 
-def define_xdelta_path(path) -> (int):
+def define_xdelta_path(path) -> int:
     """redefine path for location of xdelta3.exe,
 
     Args:
@@ -33,7 +33,7 @@ def define_xdelta_path(path) -> (int):
     return 0
 
 
-def __find_xdelta() -> (int):
+def __find_xdelta() -> int:
     """find exe of xdelta in XDELTA_PATH, and if found, change the value of XDELTA
 
     Returns:
@@ -52,7 +52,7 @@ def __find_xdelta() -> (int):
     return -1
 
 
-def create_patch(original_file, patched_file, name_patch_file="", patch_path="", overwrite=True) -> (int):
+def create_patch(original_file, patched_file, name_patch_file="", patch_path="", overwrite=True) -> int:
     """Create a xdelta3 patch file
 
     Args:
@@ -107,7 +107,7 @@ def create_patch(original_file, patched_file, name_patch_file="", patch_path="",
     return output.returncode
 
 
-def apply_patch(file_to_patch, patch_file, name_patched_file="") -> (int):
+def apply_patch(file_to_patch, patch_file, name_patched_file="") -> int:
     """Create a xdelta3 patch file
 
     Args:
