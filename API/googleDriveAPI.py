@@ -85,6 +85,35 @@ def list_files() -> (list[list[str]] | int):
     return file_info_list
 
 
+def get_id_by_name(name_element) -> (str | int):
+    """get the id by the name of a file or folder
+
+    Args:
+        name_element (str): name of the element
+
+    Returns:
+        (str | int): id of the element. Error code otherwise.
+
+    error code:<br>
+    -1 if no credentials file found<br>
+    -2 if credentials not correct<br>
+    -3 if no element with this name
+    -4 if more than one element with this name
+    """
+    ret = __init()
+    if ret != 0:
+        return ret
+    query = f"name='{name_element}'"
+    results = drive_service.files().list(q=query).execute()
+    files = results.get('files', [])
+    if len(files) == 1:
+        return files[0]['id']
+    if len(files) == 0:
+        return -3
+    if (len(files)) > 1:
+        return -4
+
+
 def download_file(file_id, local_folder=".\\") -> int:
     """download a file from google drive, by id.
     Can download every binary file (so png, txt, bin, ...).
@@ -192,3 +221,35 @@ def download_files_in_folder(folder_id, local_folder=".\\", keep_folders=False) 
         else:
             ret = download_file(file['id'], local_folder)
     return ret
+
+
+def create_folder(folder_name, location_id) -> int:
+    """create a folder in another folder
+
+    Args:
+        folder_name (str): name the folder will have
+        location_id (str): if of a folder or file.
+                           If file, the folder will be in the same folder than this file.
+
+    Returns:
+        int: 0 if no problem. Error code otherwise.
+
+    error code:<br>
+    -1 if no credentials file found<br>
+    -2 if credentials not correct<br>
+    -3 if parent_folder_id not correct
+    """
+    ret = __init()
+    if ret != 0:
+        return ret
+
+    folder_metadata = {
+        'name': folder_name,
+        'mimeType': 'application/vnd.google-apps.folder',
+        'parents': [location_id]
+    }
+    try:
+        drive_service.files().create(body=folder_metadata, fields='id').execute()
+    except Exception:
+        return -3
+    return 0
