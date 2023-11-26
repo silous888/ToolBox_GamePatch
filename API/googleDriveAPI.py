@@ -63,7 +63,11 @@ def list_files() -> (list[list[str]] | int):
     """give the list of every element the gmail adress has access.
 
     Returns:
-        list(list(str,3)): list with for each element, 0: name, 1: id, 2: type
+        list(list(str,3)): list with for each element, 0: name, 1: id, 2: type. Error code otherwise
+
+    error code:<br>
+    -1 if no credentials file found<br>
+    -2 if credentials not correct
     """
     ret = __init()
     if ret != 0:
@@ -81,12 +85,25 @@ def list_files() -> (list[list[str]] | int):
     return file_info_list
 
 
-def download_file(file_id, local_folder=".\\"):
-    """download a file from google drive, by id
+def download_file(file_id, local_folder=".\\") -> int:
+    """download a file from google drive, by id.
+    Can download every binary file (so png, txt, bin, ...).
+    for google files, can download sheet as excel and doc as word.
+    for folder, try function download_files_in_folder.
 
     Args:
         file_id (str): id of the file
         local_folder (str, optional): path where the file will be. Defaults to ".\\".
+
+    Returns:
+        int: 0 if no problem. Error code otherwise
+
+    error code:<br>
+    -1 if no credentials file found<br>
+    -2 if credentials not correct<br>
+    -3 if local_folder doesn't exist<br>
+    -4 if file_id not correct<br>
+    -5 if file can't be downloaded(slide, forms, ...)
     """
     def google_sheet_as_excel(file_metadata, local_folder):
         local_path = os.path.join(local_folder, file_metadata['name'] + '.xlsx')
@@ -104,10 +121,13 @@ def download_file(file_id, local_folder=".\\"):
     if ret != 0:
         return ret
 
+    if not os.path.exists(local_folder):
+        return -3
+
     try:
         file_metadata = drive_service.files().get(fileId=file_id).execute()
     except Exception:
-        return -3
+        return -4
 
     if file_metadata['mimeType'].startswith('application/vnd.google-apps'):
         if 'application/vnd.google-apps.spreadsheet' in file_metadata['mimeType']:
@@ -115,7 +135,7 @@ def download_file(file_id, local_folder=".\\"):
         elif 'application/vnd.google-apps.document' in file_metadata['mimeType']:
             request, local_path = google_doc_as_word(file_metadata, local_folder)
         else:
-            return -4
+            return -5
     else:
         request = drive_service.files().get_media(fileId=file_id)
         file_name = file_metadata['name']
@@ -129,15 +149,36 @@ def download_file(file_id, local_folder=".\\"):
     return 0
 
 
-def download_files_in_folder(folder_id, local_folder=".\\", keep_folders=False):
+def download_files_in_folder(folder_id, local_folder=".\\", keep_folders=False) -> int:
+    """download everything in a google drive folder
+
+    Args:
+        folder_id (str): id of the folder
+        local_folder (str, optional): path of the folder where the content downloaded will be. Defaults to ".\".
+        keep_folders (bool, optional): True to keep folders structure, False to download files only . Defaults to False.
+
+    Returns:
+        int: 0 if no problem. Error code otherwise
+
+    error code:<br>
+    -1 if no credentials file found<br>
+    -2 if credentials not correct<br>
+    -3 if local_folder doesn't exist<br>
+    -4 if file_id not correct<br>
+    -5 if file can't be downloaded(slide, forms, ...)
+    """
     ret = __init()
     if ret != 0:
         return ret
 
-    results = drive_service.files().list(
-        q=f"'{folder_id}' in parents and trashed=false",
-        fields='files(id, name, mimeType)'
-    ).execute()
+    try:
+        results = drive_service.files().list(
+            q=f"'{folder_id}' in parents and trashed=false",
+            fields='files(id, name, mimeType)'
+        ).execute()
+    except Exception:
+        return -4
+
     files = results.get('files', [])
     for file in files:
         if file['mimeType'] == 'application/vnd.google-apps.folder':
@@ -149,5 +190,5 @@ def download_files_in_folder(folder_id, local_folder=".\\", keep_folders=False):
                 new_local_folder = local_folder
             download_files_in_folder(file['id'], new_local_folder, keep_folders)
         else:
-            download_file(file['id'], local_folder)
-    return 0
+            ret = download_file(file['id'], local_folder)
+    return ret

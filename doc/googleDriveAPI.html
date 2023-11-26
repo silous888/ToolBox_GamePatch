@@ -56,6 +56,9 @@
             <li>
                     <a class="function" href="#download_file">download_file</a>
             </li>
+            <li>
+                    <a class="function" href="#download_files_in_folder">download_files_in_folder</a>
+            </li>
     </ul>
 
 
@@ -142,63 +145,135 @@ googleDriveAPI    </h1>
 </span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;give the list of every element the gmail adress has access.</span>
 </span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>
 </span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a><span class="sd">    Returns:</span>
-</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="sd">        list(list(str,3)): list with for each element, 0: name, 1: id, 2: type</span>
-</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>    <span class="n">ret</span> <span class="o">=</span> <span class="n">__init</span><span class="p">()</span>
-</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>    <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>        <span class="k">return</span> <span class="n">ret</span>
-</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a>    <span class="n">results</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">list</span><span class="p">()</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>    <span class="n">files</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="p">[])</span>
-</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>    <span class="n">file_info_list</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>
-</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
-</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>        <span class="n">file_info_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
-</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>            <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">),</span>
-</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>            <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">),</span>
-</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>            <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mimeType&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
-</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>        <span class="p">])</span>
-</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>    <span class="k">return</span> <span class="n">file_info_list</span>
-</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>
-</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>
-</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a><span class="k">def</span> <span class="nf">download_file</span><span class="p">(</span><span class="n">file_id</span><span class="p">,</span> <span class="n">local_folder</span><span class="o">=</span><span class="s2">&quot;.</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">):</span>
-</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;download a file from google drive, by id</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a><span class="sd">        list(list(str,3)): list with for each element, 0: name, 1: id, 2: type. Error code otherwise</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a><span class="sd">    error code:&lt;br&gt;</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a><span class="sd">    -1 if no credentials file found&lt;br&gt;</span>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a><span class="sd">    -2 if credentials not correct</span>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>    <span class="n">ret</span> <span class="o">=</span> <span class="n">__init</span><span class="p">()</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a>    <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a>        <span class="k">return</span> <span class="n">ret</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>    <span class="n">results</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">list</span><span class="p">()</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>    <span class="n">files</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="p">[])</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>    <span class="n">file_info_list</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a>    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>        <span class="n">file_info_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a>            <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">),</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a>            <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">),</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>            <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mimeType&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>        <span class="p">])</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>    <span class="k">return</span> <span class="n">file_info_list</span>
 </span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>
-</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a><span class="sd">    Args:</span>
-</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="sd">        file_id (str): id of the file</span>
-</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="sd">        local_folder (str, optional): path where the file will be. Defaults to &quot;.\&quot;.</span>
-</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a>    <span class="k">def</span> <span class="nf">download_google_sheet_as_excel</span><span class="p">(</span><span class="n">file_metadata</span><span class="p">,</span> <span class="n">local_folder</span><span class="p">):</span>
-</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a>        <span class="n">local_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">local_folder</span><span class="p">,</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.xlsx&#39;</span><span class="p">)</span>
-</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>        <span class="n">export_params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mimeType&#39;</span><span class="p">:</span> <span class="s1">&#39;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&#39;</span><span class="p">}</span>
-</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>        <span class="n">request</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">export_media</span><span class="p">(</span><span class="n">fileId</span><span class="o">=</span><span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">mimeType</span><span class="o">=</span><span class="n">export_params</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">])</span>
-</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>        <span class="k">return</span> <span class="n">request</span><span class="p">,</span> <span class="n">local_path</span>
-</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a>
-</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>    <span class="k">def</span> <span class="nf">download_google_doc_as_word</span><span class="p">(</span><span class="n">file_metadata</span><span class="p">,</span> <span class="n">local_folder</span><span class="p">):</span>
-</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a>        <span class="n">local_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">local_folder</span><span class="p">,</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.docx&#39;</span><span class="p">)</span>
-</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a>        <span class="n">export_params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mimeType&#39;</span><span class="p">:</span> <span class="s1">&#39;application/vnd.openxmlformats-officedocument.wordprocessingml.document&#39;</span><span class="p">}</span>
-</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>        <span class="n">request</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">export_media</span><span class="p">(</span><span class="n">fileId</span><span class="o">=</span><span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">mimeType</span><span class="o">=</span><span class="n">export_params</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">])</span>
-</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>        <span class="k">return</span> <span class="n">request</span><span class="p">,</span> <span class="n">local_path</span>
-</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>
-</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>    <span class="n">file_metadata</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fileId</span><span class="o">=</span><span class="n">file_id</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a>
-</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>    <span class="k">if</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;application/vnd.google-apps&#39;</span><span class="p">):</span>
-</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a>        <span class="k">if</span> <span class="s1">&#39;application/vnd.google-apps.spreadsheet&#39;</span> <span class="ow">in</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">]:</span>
-</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a>            <span class="n">request</span><span class="p">,</span> <span class="n">local_path</span> <span class="o">=</span> <span class="n">download_google_sheet_as_excel</span><span class="p">(</span><span class="n">file_metadata</span><span class="p">,</span> <span class="n">local_folder</span><span class="p">)</span>
-</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>        <span class="k">elif</span> <span class="s1">&#39;application/vnd.google-apps.document&#39;</span> <span class="ow">in</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">]:</span>
-</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>            <span class="n">request</span><span class="p">,</span> <span class="n">local_path</span> <span class="o">=</span> <span class="n">download_google_doc_as_word</span><span class="p">(</span><span class="n">file_metadata</span><span class="p">,</span> <span class="n">local_folder</span><span class="p">)</span>
-</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
-</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>        <span class="n">request</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">get_media</span><span class="p">(</span><span class="n">fileId</span><span class="o">=</span><span class="n">file_id</span><span class="p">)</span>
-</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>        <span class="n">file_name</span> <span class="o">=</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
-</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>        <span class="n">local_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">local_folder</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
-</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>
-</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>    <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">FileIO</span><span class="p">(</span><span class="n">local_path</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>        <span class="n">downloader</span> <span class="o">=</span> <span class="n">MediaIoBaseDownload</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
-</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>        <span class="n">done</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>        <span class="k">while</span> <span class="ow">not</span> <span class="n">done</span><span class="p">:</span>
-</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>            <span class="n">_</span><span class="p">,</span> <span class="n">done</span> <span class="o">=</span> <span class="n">downloader</span><span class="o">.</span><span class="n">next_chunk</span><span class="p">()</span>
-</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>    <span class="k">return</span> <span class="mi">0</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a><span class="k">def</span> <span class="nf">download_file</span><span class="p">(</span><span class="n">file_id</span><span class="p">,</span> <span class="n">local_folder</span><span class="o">=</span><span class="s2">&quot;.</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;download a file from google drive, by id.</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a><span class="sd">    Can download every binary file (so png, txt, bin, ...).</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a><span class="sd">    for google files, can download sheet as excel and doc as word.</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a><span class="sd">    for folder, try function download_files_in_folder.</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a><span class="sd">    Args:</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a><span class="sd">        file_id (str): id of the file</span>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a><span class="sd">        local_folder (str, optional): path where the file will be. Defaults to &quot;.\\&quot;.</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a><span class="sd">    Returns:</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a><span class="sd">        int: 0 if no problem. Error code otherwise</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a><span class="sd">    error code:&lt;br&gt;</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a><span class="sd">    -1 if no credentials file found&lt;br&gt;</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a><span class="sd">    -2 if credentials not correct&lt;br&gt;</span>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a><span class="sd">    -3 if local_folder doesn&#39;t exist&lt;br&gt;</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a><span class="sd">    -4 if file_id not correct&lt;br&gt;</span>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a><span class="sd">    -5 if file can&#39;t be downloaded(slide, forms, ...)</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a>    <span class="k">def</span> <span class="nf">google_sheet_as_excel</span><span class="p">(</span><span class="n">file_metadata</span><span class="p">,</span> <span class="n">local_folder</span><span class="p">):</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a>        <span class="n">local_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">local_folder</span><span class="p">,</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.xlsx&#39;</span><span class="p">)</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>        <span class="n">export_params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mimeType&#39;</span><span class="p">:</span> <span class="s1">&#39;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&#39;</span><span class="p">}</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>        <span class="n">request</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">export_media</span><span class="p">(</span><span class="n">fileId</span><span class="o">=</span><span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">mimeType</span><span class="o">=</span><span class="n">export_params</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">])</span>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a>        <span class="k">return</span> <span class="n">request</span><span class="p">,</span> <span class="n">local_path</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a>    <span class="k">def</span> <span class="nf">google_doc_as_word</span><span class="p">(</span><span class="n">file_metadata</span><span class="p">,</span> <span class="n">local_folder</span><span class="p">):</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a>        <span class="n">local_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">local_folder</span><span class="p">,</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.docx&#39;</span><span class="p">)</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a>        <span class="n">export_params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mimeType&#39;</span><span class="p">:</span> <span class="s1">&#39;application/vnd.openxmlformats-officedocument.wordprocessingml.document&#39;</span><span class="p">}</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a>        <span class="n">request</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">export_media</span><span class="p">(</span><span class="n">fileId</span><span class="o">=</span><span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">mimeType</span><span class="o">=</span><span class="n">export_params</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">])</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a>        <span class="k">return</span> <span class="n">request</span><span class="p">,</span> <span class="n">local_path</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>    <span class="n">ret</span> <span class="o">=</span> <span class="n">__init</span><span class="p">()</span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>    <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a>        <span class="k">return</span> <span class="n">ret</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">local_folder</span><span class="p">):</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a>        <span class="k">return</span> <span class="o">-</span><span class="mi">3</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>        <span class="n">file_metadata</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fileId</span><span class="o">=</span><span class="n">file_id</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a>    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>        <span class="k">return</span> <span class="o">-</span><span class="mi">4</span>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a>    <span class="k">if</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;application/vnd.google-apps&#39;</span><span class="p">):</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a>        <span class="k">if</span> <span class="s1">&#39;application/vnd.google-apps.spreadsheet&#39;</span> <span class="ow">in</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">]:</span>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>            <span class="n">request</span><span class="p">,</span> <span class="n">local_path</span> <span class="o">=</span> <span class="n">google_sheet_as_excel</span><span class="p">(</span><span class="n">file_metadata</span><span class="p">,</span> <span class="n">local_folder</span><span class="p">)</span>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>        <span class="k">elif</span> <span class="s1">&#39;application/vnd.google-apps.document&#39;</span> <span class="ow">in</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">]:</span>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>            <span class="n">request</span><span class="p">,</span> <span class="n">local_path</span> <span class="o">=</span> <span class="n">google_doc_as_word</span><span class="p">(</span><span class="n">file_metadata</span><span class="p">,</span> <span class="n">local_folder</span><span class="p">)</span>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>            <span class="k">return</span> <span class="o">-</span><span class="mi">5</span>
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>        <span class="n">request</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">get_media</span><span class="p">(</span><span class="n">fileId</span><span class="o">=</span><span class="n">file_id</span><span class="p">)</span>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a>        <span class="n">file_name</span> <span class="o">=</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a>        <span class="n">local_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">local_folder</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a>    <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">FileIO</span><span class="p">(</span><span class="n">local_path</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>        <span class="n">downloader</span> <span class="o">=</span> <span class="n">MediaIoBaseDownload</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>        <span class="n">done</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>        <span class="k">while</span> <span class="ow">not</span> <span class="n">done</span><span class="p">:</span>
+</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>            <span class="n">_</span><span class="p">,</span> <span class="n">done</span> <span class="o">=</span> <span class="n">downloader</span><span class="o">.</span><span class="n">next_chunk</span><span class="p">()</span>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>    <span class="k">return</span> <span class="mi">0</span>
+</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a>
+</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>
+</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a><span class="k">def</span> <span class="nf">download_files_in_folder</span><span class="p">(</span><span class="n">folder_id</span><span class="p">,</span> <span class="n">local_folder</span><span class="o">=</span><span class="s2">&quot;.</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">keep_folders</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;download everything in a google drive folder</span>
+</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a>
+</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a><span class="sd">    Args:</span>
+</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a><span class="sd">        folder_id (str): id of the folder</span>
+</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a><span class="sd">        local_folder (str, optional): path of the folder where the content downloaded will be. Defaults to &quot;.\&quot;.</span>
+</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a><span class="sd">        keep_folders (bool, optional): True to keep folders structure, False to download files only . Defaults to False.</span>
+</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>
+</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a><span class="sd">    Returns:</span>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a><span class="sd">        int: 0 if no problem. Error code otherwise</span>
+</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>
+</span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a><span class="sd">    error code:&lt;br&gt;</span>
+</span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a><span class="sd">    -1 if no credentials file found&lt;br&gt;</span>
+</span><span id="L-165"><a href="#L-165"><span class="linenos">165</span></a><span class="sd">    -2 if credentials not correct&lt;br&gt;</span>
+</span><span id="L-166"><a href="#L-166"><span class="linenos">166</span></a><span class="sd">    -3 if local_folder doesn&#39;t exist&lt;br&gt;</span>
+</span><span id="L-167"><a href="#L-167"><span class="linenos">167</span></a><span class="sd">    -4 if file_id not correct&lt;br&gt;</span>
+</span><span id="L-168"><a href="#L-168"><span class="linenos">168</span></a><span class="sd">    -5 if file can&#39;t be downloaded(slide, forms, ...)</span>
+</span><span id="L-169"><a href="#L-169"><span class="linenos">169</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="L-170"><a href="#L-170"><span class="linenos">170</span></a>    <span class="n">ret</span> <span class="o">=</span> <span class="n">__init</span><span class="p">()</span>
+</span><span id="L-171"><a href="#L-171"><span class="linenos">171</span></a>    <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="L-172"><a href="#L-172"><span class="linenos">172</span></a>        <span class="k">return</span> <span class="n">ret</span>
+</span><span id="L-173"><a href="#L-173"><span class="linenos">173</span></a>
+</span><span id="L-174"><a href="#L-174"><span class="linenos">174</span></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="L-175"><a href="#L-175"><span class="linenos">175</span></a>        <span class="n">results</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">list</span><span class="p">(</span>
+</span><span id="L-176"><a href="#L-176"><span class="linenos">176</span></a>            <span class="n">q</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">folder_id</span><span class="si">}</span><span class="s2">&#39; in parents and trashed=false&quot;</span><span class="p">,</span>
+</span><span id="L-177"><a href="#L-177"><span class="linenos">177</span></a>            <span class="n">fields</span><span class="o">=</span><span class="s1">&#39;files(id, name, mimeType)&#39;</span>
+</span><span id="L-178"><a href="#L-178"><span class="linenos">178</span></a>        <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+</span><span id="L-179"><a href="#L-179"><span class="linenos">179</span></a>    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+</span><span id="L-180"><a href="#L-180"><span class="linenos">180</span></a>        <span class="k">return</span> <span class="o">-</span><span class="mi">4</span>
+</span><span id="L-181"><a href="#L-181"><span class="linenos">181</span></a>
+</span><span id="L-182"><a href="#L-182"><span class="linenos">182</span></a>    <span class="n">files</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="p">[])</span>
+</span><span id="L-183"><a href="#L-183"><span class="linenos">183</span></a>    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+</span><span id="L-184"><a href="#L-184"><span class="linenos">184</span></a>        <span class="k">if</span> <span class="n">file</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;application/vnd.google-apps.folder&#39;</span><span class="p">:</span>
+</span><span id="L-185"><a href="#L-185"><span class="linenos">185</span></a>            <span class="k">if</span> <span class="n">keep_folders</span><span class="p">:</span>
+</span><span id="L-186"><a href="#L-186"><span class="linenos">186</span></a>                <span class="n">new_local_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">local_folder</span><span class="p">,</span> <span class="n">file</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+</span><span id="L-187"><a href="#L-187"><span class="linenos">187</span></a>                <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">new_local_folder</span><span class="p">):</span>
+</span><span id="L-188"><a href="#L-188"><span class="linenos">188</span></a>                    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">new_local_folder</span><span class="p">)</span>
+</span><span id="L-189"><a href="#L-189"><span class="linenos">189</span></a>            <span class="k">else</span><span class="p">:</span>
+</span><span id="L-190"><a href="#L-190"><span class="linenos">190</span></a>                <span class="n">new_local_folder</span> <span class="o">=</span> <span class="n">local_folder</span>
+</span><span id="L-191"><a href="#L-191"><span class="linenos">191</span></a>            <span class="n">download_files_in_folder</span><span class="p">(</span><span class="n">file</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">new_local_folder</span><span class="p">,</span> <span class="n">keep_folders</span><span class="p">)</span>
+</span><span id="L-192"><a href="#L-192"><span class="linenos">192</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-193"><a href="#L-193"><span class="linenos">193</span></a>            <span class="n">ret</span> <span class="o">=</span> <span class="n">download_file</span><span class="p">(</span><span class="n">file</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">local_folder</span><span class="p">)</span>
+</span><span id="L-194"><a href="#L-194"><span class="linenos">194</span></a>    <span class="k">return</span> <span class="n">ret</span>
 </span></pre></div>
 
 
@@ -290,22 +365,26 @@ googleDriveAPI    </h1>
 </span><span id="list_files-64"><a href="#list_files-64"><span class="linenos">64</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;give the list of every element the gmail adress has access.</span>
 </span><span id="list_files-65"><a href="#list_files-65"><span class="linenos">65</span></a>
 </span><span id="list_files-66"><a href="#list_files-66"><span class="linenos">66</span></a><span class="sd">    Returns:</span>
-</span><span id="list_files-67"><a href="#list_files-67"><span class="linenos">67</span></a><span class="sd">        list(list(str,3)): list with for each element, 0: name, 1: id, 2: type</span>
-</span><span id="list_files-68"><a href="#list_files-68"><span class="linenos">68</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="list_files-69"><a href="#list_files-69"><span class="linenos">69</span></a>    <span class="n">ret</span> <span class="o">=</span> <span class="n">__init</span><span class="p">()</span>
-</span><span id="list_files-70"><a href="#list_files-70"><span class="linenos">70</span></a>    <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-</span><span id="list_files-71"><a href="#list_files-71"><span class="linenos">71</span></a>        <span class="k">return</span> <span class="n">ret</span>
-</span><span id="list_files-72"><a href="#list_files-72"><span class="linenos">72</span></a>    <span class="n">results</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">list</span><span class="p">()</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-</span><span id="list_files-73"><a href="#list_files-73"><span class="linenos">73</span></a>    <span class="n">files</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="p">[])</span>
-</span><span id="list_files-74"><a href="#list_files-74"><span class="linenos">74</span></a>    <span class="n">file_info_list</span> <span class="o">=</span> <span class="p">[]</span>
-</span><span id="list_files-75"><a href="#list_files-75"><span class="linenos">75</span></a>
-</span><span id="list_files-76"><a href="#list_files-76"><span class="linenos">76</span></a>    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
-</span><span id="list_files-77"><a href="#list_files-77"><span class="linenos">77</span></a>        <span class="n">file_info_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
-</span><span id="list_files-78"><a href="#list_files-78"><span class="linenos">78</span></a>            <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">),</span>
-</span><span id="list_files-79"><a href="#list_files-79"><span class="linenos">79</span></a>            <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">),</span>
-</span><span id="list_files-80"><a href="#list_files-80"><span class="linenos">80</span></a>            <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mimeType&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
-</span><span id="list_files-81"><a href="#list_files-81"><span class="linenos">81</span></a>        <span class="p">])</span>
-</span><span id="list_files-82"><a href="#list_files-82"><span class="linenos">82</span></a>    <span class="k">return</span> <span class="n">file_info_list</span>
+</span><span id="list_files-67"><a href="#list_files-67"><span class="linenos">67</span></a><span class="sd">        list(list(str,3)): list with for each element, 0: name, 1: id, 2: type. Error code otherwise</span>
+</span><span id="list_files-68"><a href="#list_files-68"><span class="linenos">68</span></a>
+</span><span id="list_files-69"><a href="#list_files-69"><span class="linenos">69</span></a><span class="sd">    error code:&lt;br&gt;</span>
+</span><span id="list_files-70"><a href="#list_files-70"><span class="linenos">70</span></a><span class="sd">    -1 if no credentials file found&lt;br&gt;</span>
+</span><span id="list_files-71"><a href="#list_files-71"><span class="linenos">71</span></a><span class="sd">    -2 if credentials not correct</span>
+</span><span id="list_files-72"><a href="#list_files-72"><span class="linenos">72</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="list_files-73"><a href="#list_files-73"><span class="linenos">73</span></a>    <span class="n">ret</span> <span class="o">=</span> <span class="n">__init</span><span class="p">()</span>
+</span><span id="list_files-74"><a href="#list_files-74"><span class="linenos">74</span></a>    <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="list_files-75"><a href="#list_files-75"><span class="linenos">75</span></a>        <span class="k">return</span> <span class="n">ret</span>
+</span><span id="list_files-76"><a href="#list_files-76"><span class="linenos">76</span></a>    <span class="n">results</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">list</span><span class="p">()</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+</span><span id="list_files-77"><a href="#list_files-77"><span class="linenos">77</span></a>    <span class="n">files</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="p">[])</span>
+</span><span id="list_files-78"><a href="#list_files-78"><span class="linenos">78</span></a>    <span class="n">file_info_list</span> <span class="o">=</span> <span class="p">[]</span>
+</span><span id="list_files-79"><a href="#list_files-79"><span class="linenos">79</span></a>
+</span><span id="list_files-80"><a href="#list_files-80"><span class="linenos">80</span></a>    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+</span><span id="list_files-81"><a href="#list_files-81"><span class="linenos">81</span></a>        <span class="n">file_info_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
+</span><span id="list_files-82"><a href="#list_files-82"><span class="linenos">82</span></a>            <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;name&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">),</span>
+</span><span id="list_files-83"><a href="#list_files-83"><span class="linenos">83</span></a>            <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;id&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">),</span>
+</span><span id="list_files-84"><a href="#list_files-84"><span class="linenos">84</span></a>            <span class="n">file</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mimeType&#39;</span><span class="p">,</span> <span class="s1">&#39;N/A&#39;</span><span class="p">)</span>
+</span><span id="list_files-85"><a href="#list_files-85"><span class="linenos">85</span></a>        <span class="p">])</span>
+</span><span id="list_files-86"><a href="#list_files-86"><span class="linenos">86</span></a>    <span class="k">return</span> <span class="n">file_info_list</span>
 </span></pre></div>
 
 
@@ -314,8 +393,12 @@ googleDriveAPI    </h1>
 <h6 id="returns">Returns:</h6>
 
 <blockquote>
-  <p>list(list(str,3)): list with for each element, 0: name, 1: id, 2: type</p>
+  <p>list(list(str,3)): list with for each element, 0: name, 1: id, 2: type. Error code otherwise</p>
 </blockquote>
+
+<p>error code:<br>
+-1 if no credentials file found<br>
+-2 if credentials not correct</p>
 </div>
 
 
@@ -325,62 +408,184 @@ googleDriveAPI    </h1>
 <div class="attr function">
             
         <span class="def">def</span>
-        <span class="name">download_file</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">file_id</span>, </span><span class="param"><span class="n">local_folder</span><span class="o">=</span><span class="s1">&#39;.</span><span class="se">\\</span><span class="s1">&#39;</span></span><span class="return-annotation">):</span></span>
+        <span class="name">download_file</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">file_id</span>, </span><span class="param"><span class="n">local_folder</span><span class="o">=</span><span class="s1">&#39;.</span><span class="se">\\</span><span class="s1">&#39;</span></span><span class="return-annotation">) -> <span class="nb">int</span>:</span></span>
 
                 <label class="view-source-button" for="download_file-view-source"><span>View Source</span></label>
 
     </div>
     <a class="headerlink" href="#download_file"></a>
-            <div class="pdoc-code codehilite"><pre><span></span><span id="download_file-85"><a href="#download_file-85"><span class="linenos"> 85</span></a><span class="k">def</span> <span class="nf">download_file</span><span class="p">(</span><span class="n">file_id</span><span class="p">,</span> <span class="n">local_folder</span><span class="o">=</span><span class="s2">&quot;.</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">):</span>
-</span><span id="download_file-86"><a href="#download_file-86"><span class="linenos"> 86</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;download a file from google drive, by id</span>
-</span><span id="download_file-87"><a href="#download_file-87"><span class="linenos"> 87</span></a>
-</span><span id="download_file-88"><a href="#download_file-88"><span class="linenos"> 88</span></a><span class="sd">    Args:</span>
-</span><span id="download_file-89"><a href="#download_file-89"><span class="linenos"> 89</span></a><span class="sd">        file_id (str): id of the file</span>
-</span><span id="download_file-90"><a href="#download_file-90"><span class="linenos"> 90</span></a><span class="sd">        local_folder (str, optional): path where the file will be. Defaults to &quot;.\&quot;.</span>
-</span><span id="download_file-91"><a href="#download_file-91"><span class="linenos"> 91</span></a><span class="sd">    &quot;&quot;&quot;</span>
-</span><span id="download_file-92"><a href="#download_file-92"><span class="linenos"> 92</span></a>    <span class="k">def</span> <span class="nf">download_google_sheet_as_excel</span><span class="p">(</span><span class="n">file_metadata</span><span class="p">,</span> <span class="n">local_folder</span><span class="p">):</span>
-</span><span id="download_file-93"><a href="#download_file-93"><span class="linenos"> 93</span></a>        <span class="n">local_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">local_folder</span><span class="p">,</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.xlsx&#39;</span><span class="p">)</span>
-</span><span id="download_file-94"><a href="#download_file-94"><span class="linenos"> 94</span></a>        <span class="n">export_params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mimeType&#39;</span><span class="p">:</span> <span class="s1">&#39;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&#39;</span><span class="p">}</span>
-</span><span id="download_file-95"><a href="#download_file-95"><span class="linenos"> 95</span></a>        <span class="n">request</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">export_media</span><span class="p">(</span><span class="n">fileId</span><span class="o">=</span><span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">mimeType</span><span class="o">=</span><span class="n">export_params</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">])</span>
-</span><span id="download_file-96"><a href="#download_file-96"><span class="linenos"> 96</span></a>        <span class="k">return</span> <span class="n">request</span><span class="p">,</span> <span class="n">local_path</span>
-</span><span id="download_file-97"><a href="#download_file-97"><span class="linenos"> 97</span></a>
-</span><span id="download_file-98"><a href="#download_file-98"><span class="linenos"> 98</span></a>    <span class="k">def</span> <span class="nf">download_google_doc_as_word</span><span class="p">(</span><span class="n">file_metadata</span><span class="p">,</span> <span class="n">local_folder</span><span class="p">):</span>
-</span><span id="download_file-99"><a href="#download_file-99"><span class="linenos"> 99</span></a>        <span class="n">local_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">local_folder</span><span class="p">,</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.docx&#39;</span><span class="p">)</span>
-</span><span id="download_file-100"><a href="#download_file-100"><span class="linenos">100</span></a>        <span class="n">export_params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mimeType&#39;</span><span class="p">:</span> <span class="s1">&#39;application/vnd.openxmlformats-officedocument.wordprocessingml.document&#39;</span><span class="p">}</span>
-</span><span id="download_file-101"><a href="#download_file-101"><span class="linenos">101</span></a>        <span class="n">request</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">export_media</span><span class="p">(</span><span class="n">fileId</span><span class="o">=</span><span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">mimeType</span><span class="o">=</span><span class="n">export_params</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">])</span>
-</span><span id="download_file-102"><a href="#download_file-102"><span class="linenos">102</span></a>        <span class="k">return</span> <span class="n">request</span><span class="p">,</span> <span class="n">local_path</span>
-</span><span id="download_file-103"><a href="#download_file-103"><span class="linenos">103</span></a>
-</span><span id="download_file-104"><a href="#download_file-104"><span class="linenos">104</span></a>    <span class="n">file_metadata</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fileId</span><span class="o">=</span><span class="n">file_id</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
-</span><span id="download_file-105"><a href="#download_file-105"><span class="linenos">105</span></a>
-</span><span id="download_file-106"><a href="#download_file-106"><span class="linenos">106</span></a>    <span class="k">if</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;application/vnd.google-apps&#39;</span><span class="p">):</span>
-</span><span id="download_file-107"><a href="#download_file-107"><span class="linenos">107</span></a>        <span class="k">if</span> <span class="s1">&#39;application/vnd.google-apps.spreadsheet&#39;</span> <span class="ow">in</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">]:</span>
-</span><span id="download_file-108"><a href="#download_file-108"><span class="linenos">108</span></a>            <span class="n">request</span><span class="p">,</span> <span class="n">local_path</span> <span class="o">=</span> <span class="n">download_google_sheet_as_excel</span><span class="p">(</span><span class="n">file_metadata</span><span class="p">,</span> <span class="n">local_folder</span><span class="p">)</span>
-</span><span id="download_file-109"><a href="#download_file-109"><span class="linenos">109</span></a>        <span class="k">elif</span> <span class="s1">&#39;application/vnd.google-apps.document&#39;</span> <span class="ow">in</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">]:</span>
-</span><span id="download_file-110"><a href="#download_file-110"><span class="linenos">110</span></a>            <span class="n">request</span><span class="p">,</span> <span class="n">local_path</span> <span class="o">=</span> <span class="n">download_google_doc_as_word</span><span class="p">(</span><span class="n">file_metadata</span><span class="p">,</span> <span class="n">local_folder</span><span class="p">)</span>
-</span><span id="download_file-111"><a href="#download_file-111"><span class="linenos">111</span></a>        <span class="k">else</span><span class="p">:</span>
-</span><span id="download_file-112"><a href="#download_file-112"><span class="linenos">112</span></a>            <span class="k">return</span> <span class="o">-</span><span class="mi">1</span>
-</span><span id="download_file-113"><a href="#download_file-113"><span class="linenos">113</span></a>    <span class="k">else</span><span class="p">:</span>
-</span><span id="download_file-114"><a href="#download_file-114"><span class="linenos">114</span></a>        <span class="n">request</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">get_media</span><span class="p">(</span><span class="n">fileId</span><span class="o">=</span><span class="n">file_id</span><span class="p">)</span>
-</span><span id="download_file-115"><a href="#download_file-115"><span class="linenos">115</span></a>        <span class="n">file_name</span> <span class="o">=</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
-</span><span id="download_file-116"><a href="#download_file-116"><span class="linenos">116</span></a>        <span class="n">local_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">local_folder</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
-</span><span id="download_file-117"><a href="#download_file-117"><span class="linenos">117</span></a>
-</span><span id="download_file-118"><a href="#download_file-118"><span class="linenos">118</span></a>    <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">FileIO</span><span class="p">(</span><span class="n">local_path</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
-</span><span id="download_file-119"><a href="#download_file-119"><span class="linenos">119</span></a>        <span class="n">downloader</span> <span class="o">=</span> <span class="n">MediaIoBaseDownload</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
-</span><span id="download_file-120"><a href="#download_file-120"><span class="linenos">120</span></a>        <span class="n">done</span> <span class="o">=</span> <span class="kc">False</span>
-</span><span id="download_file-121"><a href="#download_file-121"><span class="linenos">121</span></a>        <span class="k">while</span> <span class="ow">not</span> <span class="n">done</span><span class="p">:</span>
-</span><span id="download_file-122"><a href="#download_file-122"><span class="linenos">122</span></a>            <span class="n">_</span><span class="p">,</span> <span class="n">done</span> <span class="o">=</span> <span class="n">downloader</span><span class="o">.</span><span class="n">next_chunk</span><span class="p">()</span>
-</span><span id="download_file-123"><a href="#download_file-123"><span class="linenos">123</span></a>    <span class="k">return</span> <span class="mi">0</span>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="download_file-89"><a href="#download_file-89"><span class="linenos"> 89</span></a><span class="k">def</span> <span class="nf">download_file</span><span class="p">(</span><span class="n">file_id</span><span class="p">,</span> <span class="n">local_folder</span><span class="o">=</span><span class="s2">&quot;.</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="download_file-90"><a href="#download_file-90"><span class="linenos"> 90</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;download a file from google drive, by id.</span>
+</span><span id="download_file-91"><a href="#download_file-91"><span class="linenos"> 91</span></a><span class="sd">    Can download every binary file (so png, txt, bin, ...).</span>
+</span><span id="download_file-92"><a href="#download_file-92"><span class="linenos"> 92</span></a><span class="sd">    for google files, can download sheet as excel and doc as word.</span>
+</span><span id="download_file-93"><a href="#download_file-93"><span class="linenos"> 93</span></a><span class="sd">    for folder, try function download_files_in_folder.</span>
+</span><span id="download_file-94"><a href="#download_file-94"><span class="linenos"> 94</span></a>
+</span><span id="download_file-95"><a href="#download_file-95"><span class="linenos"> 95</span></a><span class="sd">    Args:</span>
+</span><span id="download_file-96"><a href="#download_file-96"><span class="linenos"> 96</span></a><span class="sd">        file_id (str): id of the file</span>
+</span><span id="download_file-97"><a href="#download_file-97"><span class="linenos"> 97</span></a><span class="sd">        local_folder (str, optional): path where the file will be. Defaults to &quot;.\\&quot;.</span>
+</span><span id="download_file-98"><a href="#download_file-98"><span class="linenos"> 98</span></a>
+</span><span id="download_file-99"><a href="#download_file-99"><span class="linenos"> 99</span></a><span class="sd">    Returns:</span>
+</span><span id="download_file-100"><a href="#download_file-100"><span class="linenos">100</span></a><span class="sd">        int: 0 if no problem. Error code otherwise</span>
+</span><span id="download_file-101"><a href="#download_file-101"><span class="linenos">101</span></a>
+</span><span id="download_file-102"><a href="#download_file-102"><span class="linenos">102</span></a><span class="sd">    error code:&lt;br&gt;</span>
+</span><span id="download_file-103"><a href="#download_file-103"><span class="linenos">103</span></a><span class="sd">    -1 if no credentials file found&lt;br&gt;</span>
+</span><span id="download_file-104"><a href="#download_file-104"><span class="linenos">104</span></a><span class="sd">    -2 if credentials not correct&lt;br&gt;</span>
+</span><span id="download_file-105"><a href="#download_file-105"><span class="linenos">105</span></a><span class="sd">    -3 if local_folder doesn&#39;t exist&lt;br&gt;</span>
+</span><span id="download_file-106"><a href="#download_file-106"><span class="linenos">106</span></a><span class="sd">    -4 if file_id not correct&lt;br&gt;</span>
+</span><span id="download_file-107"><a href="#download_file-107"><span class="linenos">107</span></a><span class="sd">    -5 if file can&#39;t be downloaded(slide, forms, ...)</span>
+</span><span id="download_file-108"><a href="#download_file-108"><span class="linenos">108</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="download_file-109"><a href="#download_file-109"><span class="linenos">109</span></a>    <span class="k">def</span> <span class="nf">google_sheet_as_excel</span><span class="p">(</span><span class="n">file_metadata</span><span class="p">,</span> <span class="n">local_folder</span><span class="p">):</span>
+</span><span id="download_file-110"><a href="#download_file-110"><span class="linenos">110</span></a>        <span class="n">local_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">local_folder</span><span class="p">,</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.xlsx&#39;</span><span class="p">)</span>
+</span><span id="download_file-111"><a href="#download_file-111"><span class="linenos">111</span></a>        <span class="n">export_params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mimeType&#39;</span><span class="p">:</span> <span class="s1">&#39;application/vnd.openxmlformats-officedocument.spreadsheetml.sheet&#39;</span><span class="p">}</span>
+</span><span id="download_file-112"><a href="#download_file-112"><span class="linenos">112</span></a>        <span class="n">request</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">export_media</span><span class="p">(</span><span class="n">fileId</span><span class="o">=</span><span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">mimeType</span><span class="o">=</span><span class="n">export_params</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">])</span>
+</span><span id="download_file-113"><a href="#download_file-113"><span class="linenos">113</span></a>        <span class="k">return</span> <span class="n">request</span><span class="p">,</span> <span class="n">local_path</span>
+</span><span id="download_file-114"><a href="#download_file-114"><span class="linenos">114</span></a>
+</span><span id="download_file-115"><a href="#download_file-115"><span class="linenos">115</span></a>    <span class="k">def</span> <span class="nf">google_doc_as_word</span><span class="p">(</span><span class="n">file_metadata</span><span class="p">,</span> <span class="n">local_folder</span><span class="p">):</span>
+</span><span id="download_file-116"><a href="#download_file-116"><span class="linenos">116</span></a>        <span class="n">local_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">local_folder</span><span class="p">,</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s1">&#39;.docx&#39;</span><span class="p">)</span>
+</span><span id="download_file-117"><a href="#download_file-117"><span class="linenos">117</span></a>        <span class="n">export_params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;mimeType&#39;</span><span class="p">:</span> <span class="s1">&#39;application/vnd.openxmlformats-officedocument.wordprocessingml.document&#39;</span><span class="p">}</span>
+</span><span id="download_file-118"><a href="#download_file-118"><span class="linenos">118</span></a>        <span class="n">request</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">export_media</span><span class="p">(</span><span class="n">fileId</span><span class="o">=</span><span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">mimeType</span><span class="o">=</span><span class="n">export_params</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">])</span>
+</span><span id="download_file-119"><a href="#download_file-119"><span class="linenos">119</span></a>        <span class="k">return</span> <span class="n">request</span><span class="p">,</span> <span class="n">local_path</span>
+</span><span id="download_file-120"><a href="#download_file-120"><span class="linenos">120</span></a>
+</span><span id="download_file-121"><a href="#download_file-121"><span class="linenos">121</span></a>    <span class="n">ret</span> <span class="o">=</span> <span class="n">__init</span><span class="p">()</span>
+</span><span id="download_file-122"><a href="#download_file-122"><span class="linenos">122</span></a>    <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="download_file-123"><a href="#download_file-123"><span class="linenos">123</span></a>        <span class="k">return</span> <span class="n">ret</span>
+</span><span id="download_file-124"><a href="#download_file-124"><span class="linenos">124</span></a>
+</span><span id="download_file-125"><a href="#download_file-125"><span class="linenos">125</span></a>    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">local_folder</span><span class="p">):</span>
+</span><span id="download_file-126"><a href="#download_file-126"><span class="linenos">126</span></a>        <span class="k">return</span> <span class="o">-</span><span class="mi">3</span>
+</span><span id="download_file-127"><a href="#download_file-127"><span class="linenos">127</span></a>
+</span><span id="download_file-128"><a href="#download_file-128"><span class="linenos">128</span></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="download_file-129"><a href="#download_file-129"><span class="linenos">129</span></a>        <span class="n">file_metadata</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fileId</span><span class="o">=</span><span class="n">file_id</span><span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+</span><span id="download_file-130"><a href="#download_file-130"><span class="linenos">130</span></a>    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+</span><span id="download_file-131"><a href="#download_file-131"><span class="linenos">131</span></a>        <span class="k">return</span> <span class="o">-</span><span class="mi">4</span>
+</span><span id="download_file-132"><a href="#download_file-132"><span class="linenos">132</span></a>
+</span><span id="download_file-133"><a href="#download_file-133"><span class="linenos">133</span></a>    <span class="k">if</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;application/vnd.google-apps&#39;</span><span class="p">):</span>
+</span><span id="download_file-134"><a href="#download_file-134"><span class="linenos">134</span></a>        <span class="k">if</span> <span class="s1">&#39;application/vnd.google-apps.spreadsheet&#39;</span> <span class="ow">in</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">]:</span>
+</span><span id="download_file-135"><a href="#download_file-135"><span class="linenos">135</span></a>            <span class="n">request</span><span class="p">,</span> <span class="n">local_path</span> <span class="o">=</span> <span class="n">google_sheet_as_excel</span><span class="p">(</span><span class="n">file_metadata</span><span class="p">,</span> <span class="n">local_folder</span><span class="p">)</span>
+</span><span id="download_file-136"><a href="#download_file-136"><span class="linenos">136</span></a>        <span class="k">elif</span> <span class="s1">&#39;application/vnd.google-apps.document&#39;</span> <span class="ow">in</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">]:</span>
+</span><span id="download_file-137"><a href="#download_file-137"><span class="linenos">137</span></a>            <span class="n">request</span><span class="p">,</span> <span class="n">local_path</span> <span class="o">=</span> <span class="n">google_doc_as_word</span><span class="p">(</span><span class="n">file_metadata</span><span class="p">,</span> <span class="n">local_folder</span><span class="p">)</span>
+</span><span id="download_file-138"><a href="#download_file-138"><span class="linenos">138</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="download_file-139"><a href="#download_file-139"><span class="linenos">139</span></a>            <span class="k">return</span> <span class="o">-</span><span class="mi">5</span>
+</span><span id="download_file-140"><a href="#download_file-140"><span class="linenos">140</span></a>    <span class="k">else</span><span class="p">:</span>
+</span><span id="download_file-141"><a href="#download_file-141"><span class="linenos">141</span></a>        <span class="n">request</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">get_media</span><span class="p">(</span><span class="n">fileId</span><span class="o">=</span><span class="n">file_id</span><span class="p">)</span>
+</span><span id="download_file-142"><a href="#download_file-142"><span class="linenos">142</span></a>        <span class="n">file_name</span> <span class="o">=</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
+</span><span id="download_file-143"><a href="#download_file-143"><span class="linenos">143</span></a>        <span class="n">local_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">local_folder</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
+</span><span id="download_file-144"><a href="#download_file-144"><span class="linenos">144</span></a>
+</span><span id="download_file-145"><a href="#download_file-145"><span class="linenos">145</span></a>    <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">FileIO</span><span class="p">(</span><span class="n">local_path</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fh</span><span class="p">:</span>
+</span><span id="download_file-146"><a href="#download_file-146"><span class="linenos">146</span></a>        <span class="n">downloader</span> <span class="o">=</span> <span class="n">MediaIoBaseDownload</span><span class="p">(</span><span class="n">fh</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+</span><span id="download_file-147"><a href="#download_file-147"><span class="linenos">147</span></a>        <span class="n">done</span> <span class="o">=</span> <span class="kc">False</span>
+</span><span id="download_file-148"><a href="#download_file-148"><span class="linenos">148</span></a>        <span class="k">while</span> <span class="ow">not</span> <span class="n">done</span><span class="p">:</span>
+</span><span id="download_file-149"><a href="#download_file-149"><span class="linenos">149</span></a>            <span class="n">_</span><span class="p">,</span> <span class="n">done</span> <span class="o">=</span> <span class="n">downloader</span><span class="o">.</span><span class="n">next_chunk</span><span class="p">()</span>
+</span><span id="download_file-150"><a href="#download_file-150"><span class="linenos">150</span></a>    <span class="k">return</span> <span class="mi">0</span>
 </span></pre></div>
 
 
-            <div class="docstring"><p>download a file from google drive, by id</p>
+            <div class="docstring"><p>download a file from google drive, by id.
+Can download every binary file (so png, txt, bin, ...).
+for google files, can download sheet as excel and doc as word.
+for folder, try function download_files_in_folder.</p>
 
 <h6 id="arguments">Arguments:</h6>
 
 <ul>
 <li><strong>file_id (str):</strong>  id of the file</li>
-<li><strong>local_folder (str, optional):</strong>  path where the file will be. Defaults to ".".</li>
+<li><strong>local_folder (str, optional):</strong>  path where the file will be. Defaults to ".\".</li>
 </ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>int: 0 if no problem. Error code otherwise</p>
+</blockquote>
+
+<p>error code:<br>
+-1 if no credentials file found<br>
+-2 if credentials not correct<br>
+-3 if local_folder doesn't exist<br>
+-4 if file_id not correct<br>
+-5 if file can't be downloaded(slide, forms, ...)</p>
+</div>
+
+
+                </section>
+                <section id="download_files_in_folder">
+                            <input id="download_files_in_folder-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">download_files_in_folder</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">folder_id</span>, </span><span class="param"><span class="n">local_folder</span><span class="o">=</span><span class="s1">&#39;.</span><span class="se">\\</span><span class="s1">&#39;</span>, </span><span class="param"><span class="n">keep_folders</span><span class="o">=</span><span class="kc">False</span></span><span class="return-annotation">) -> <span class="nb">int</span>:</span></span>
+
+                <label class="view-source-button" for="download_files_in_folder-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#download_files_in_folder"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="download_files_in_folder-153"><a href="#download_files_in_folder-153"><span class="linenos">153</span></a><span class="k">def</span> <span class="nf">download_files_in_folder</span><span class="p">(</span><span class="n">folder_id</span><span class="p">,</span> <span class="n">local_folder</span><span class="o">=</span><span class="s2">&quot;.</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">keep_folders</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="download_files_in_folder-154"><a href="#download_files_in_folder-154"><span class="linenos">154</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;download everything in a google drive folder</span>
+</span><span id="download_files_in_folder-155"><a href="#download_files_in_folder-155"><span class="linenos">155</span></a>
+</span><span id="download_files_in_folder-156"><a href="#download_files_in_folder-156"><span class="linenos">156</span></a><span class="sd">    Args:</span>
+</span><span id="download_files_in_folder-157"><a href="#download_files_in_folder-157"><span class="linenos">157</span></a><span class="sd">        folder_id (str): id of the folder</span>
+</span><span id="download_files_in_folder-158"><a href="#download_files_in_folder-158"><span class="linenos">158</span></a><span class="sd">        local_folder (str, optional): path of the folder where the content downloaded will be. Defaults to &quot;.\&quot;.</span>
+</span><span id="download_files_in_folder-159"><a href="#download_files_in_folder-159"><span class="linenos">159</span></a><span class="sd">        keep_folders (bool, optional): True to keep folders structure, False to download files only . Defaults to False.</span>
+</span><span id="download_files_in_folder-160"><a href="#download_files_in_folder-160"><span class="linenos">160</span></a>
+</span><span id="download_files_in_folder-161"><a href="#download_files_in_folder-161"><span class="linenos">161</span></a><span class="sd">    Returns:</span>
+</span><span id="download_files_in_folder-162"><a href="#download_files_in_folder-162"><span class="linenos">162</span></a><span class="sd">        int: 0 if no problem. Error code otherwise</span>
+</span><span id="download_files_in_folder-163"><a href="#download_files_in_folder-163"><span class="linenos">163</span></a>
+</span><span id="download_files_in_folder-164"><a href="#download_files_in_folder-164"><span class="linenos">164</span></a><span class="sd">    error code:&lt;br&gt;</span>
+</span><span id="download_files_in_folder-165"><a href="#download_files_in_folder-165"><span class="linenos">165</span></a><span class="sd">    -1 if no credentials file found&lt;br&gt;</span>
+</span><span id="download_files_in_folder-166"><a href="#download_files_in_folder-166"><span class="linenos">166</span></a><span class="sd">    -2 if credentials not correct&lt;br&gt;</span>
+</span><span id="download_files_in_folder-167"><a href="#download_files_in_folder-167"><span class="linenos">167</span></a><span class="sd">    -3 if local_folder doesn&#39;t exist&lt;br&gt;</span>
+</span><span id="download_files_in_folder-168"><a href="#download_files_in_folder-168"><span class="linenos">168</span></a><span class="sd">    -4 if file_id not correct&lt;br&gt;</span>
+</span><span id="download_files_in_folder-169"><a href="#download_files_in_folder-169"><span class="linenos">169</span></a><span class="sd">    -5 if file can&#39;t be downloaded(slide, forms, ...)</span>
+</span><span id="download_files_in_folder-170"><a href="#download_files_in_folder-170"><span class="linenos">170</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="download_files_in_folder-171"><a href="#download_files_in_folder-171"><span class="linenos">171</span></a>    <span class="n">ret</span> <span class="o">=</span> <span class="n">__init</span><span class="p">()</span>
+</span><span id="download_files_in_folder-172"><a href="#download_files_in_folder-172"><span class="linenos">172</span></a>    <span class="k">if</span> <span class="n">ret</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+</span><span id="download_files_in_folder-173"><a href="#download_files_in_folder-173"><span class="linenos">173</span></a>        <span class="k">return</span> <span class="n">ret</span>
+</span><span id="download_files_in_folder-174"><a href="#download_files_in_folder-174"><span class="linenos">174</span></a>
+</span><span id="download_files_in_folder-175"><a href="#download_files_in_folder-175"><span class="linenos">175</span></a>    <span class="k">try</span><span class="p">:</span>
+</span><span id="download_files_in_folder-176"><a href="#download_files_in_folder-176"><span class="linenos">176</span></a>        <span class="n">results</span> <span class="o">=</span> <span class="n">drive_service</span><span class="o">.</span><span class="n">files</span><span class="p">()</span><span class="o">.</span><span class="n">list</span><span class="p">(</span>
+</span><span id="download_files_in_folder-177"><a href="#download_files_in_folder-177"><span class="linenos">177</span></a>            <span class="n">q</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">folder_id</span><span class="si">}</span><span class="s2">&#39; in parents and trashed=false&quot;</span><span class="p">,</span>
+</span><span id="download_files_in_folder-178"><a href="#download_files_in_folder-178"><span class="linenos">178</span></a>            <span class="n">fields</span><span class="o">=</span><span class="s1">&#39;files(id, name, mimeType)&#39;</span>
+</span><span id="download_files_in_folder-179"><a href="#download_files_in_folder-179"><span class="linenos">179</span></a>        <span class="p">)</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+</span><span id="download_files_in_folder-180"><a href="#download_files_in_folder-180"><span class="linenos">180</span></a>    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+</span><span id="download_files_in_folder-181"><a href="#download_files_in_folder-181"><span class="linenos">181</span></a>        <span class="k">return</span> <span class="o">-</span><span class="mi">4</span>
+</span><span id="download_files_in_folder-182"><a href="#download_files_in_folder-182"><span class="linenos">182</span></a>
+</span><span id="download_files_in_folder-183"><a href="#download_files_in_folder-183"><span class="linenos">183</span></a>    <span class="n">files</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;files&#39;</span><span class="p">,</span> <span class="p">[])</span>
+</span><span id="download_files_in_folder-184"><a href="#download_files_in_folder-184"><span class="linenos">184</span></a>    <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">:</span>
+</span><span id="download_files_in_folder-185"><a href="#download_files_in_folder-185"><span class="linenos">185</span></a>        <span class="k">if</span> <span class="n">file</span><span class="p">[</span><span class="s1">&#39;mimeType&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;application/vnd.google-apps.folder&#39;</span><span class="p">:</span>
+</span><span id="download_files_in_folder-186"><a href="#download_files_in_folder-186"><span class="linenos">186</span></a>            <span class="k">if</span> <span class="n">keep_folders</span><span class="p">:</span>
+</span><span id="download_files_in_folder-187"><a href="#download_files_in_folder-187"><span class="linenos">187</span></a>                <span class="n">new_local_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">local_folder</span><span class="p">,</span> <span class="n">file</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">])</span>
+</span><span id="download_files_in_folder-188"><a href="#download_files_in_folder-188"><span class="linenos">188</span></a>                <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">new_local_folder</span><span class="p">):</span>
+</span><span id="download_files_in_folder-189"><a href="#download_files_in_folder-189"><span class="linenos">189</span></a>                    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">new_local_folder</span><span class="p">)</span>
+</span><span id="download_files_in_folder-190"><a href="#download_files_in_folder-190"><span class="linenos">190</span></a>            <span class="k">else</span><span class="p">:</span>
+</span><span id="download_files_in_folder-191"><a href="#download_files_in_folder-191"><span class="linenos">191</span></a>                <span class="n">new_local_folder</span> <span class="o">=</span> <span class="n">local_folder</span>
+</span><span id="download_files_in_folder-192"><a href="#download_files_in_folder-192"><span class="linenos">192</span></a>            <span class="n">download_files_in_folder</span><span class="p">(</span><span class="n">file</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">new_local_folder</span><span class="p">,</span> <span class="n">keep_folders</span><span class="p">)</span>
+</span><span id="download_files_in_folder-193"><a href="#download_files_in_folder-193"><span class="linenos">193</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="download_files_in_folder-194"><a href="#download_files_in_folder-194"><span class="linenos">194</span></a>            <span class="n">ret</span> <span class="o">=</span> <span class="n">download_file</span><span class="p">(</span><span class="n">file</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">],</span> <span class="n">local_folder</span><span class="p">)</span>
+</span><span id="download_files_in_folder-195"><a href="#download_files_in_folder-195"><span class="linenos">195</span></a>    <span class="k">return</span> <span class="n">ret</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>download everything in a google drive folder</p>
+
+<h6 id="arguments">Arguments:</h6>
+
+<ul>
+<li><strong>folder_id (str):</strong>  id of the folder</li>
+<li><strong>local_folder (str, optional):</strong>  path of the folder where the content downloaded will be. Defaults to ".".</li>
+<li><strong>keep_folders (bool, optional):</strong>  True to keep folders structure, False to download files only . Defaults to False.</li>
+</ul>
+
+<h6 id="returns">Returns:</h6>
+
+<blockquote>
+  <p>int: 0 if no problem. Error code otherwise</p>
+</blockquote>
+
+<p>error code:<br>
+-1 if no credentials file found<br>
+-2 if credentials not correct<br>
+-3 if local_folder doesn't exist<br>
+-4 if file_id not correct<br>
+-5 if file can't be downloaded(slide, forms, ...)</p>
 </div>
 
 
