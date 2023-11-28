@@ -77,7 +77,7 @@ def find_game_path(game_folder_name) -> (str | int):
     """find path of a steam game
 
     Args:
-        game_folder_name (str): exact name of the steam game folder
+        game_folder_name (str): exact name of the steam game folder in SteamLibrary\\steamapps\\common\\
 
     Returns:
         str | int: path of the folder game, or error code

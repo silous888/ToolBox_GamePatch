@@ -3,16 +3,9 @@ import os as _os
 from time import sleep as _sleep
 
 
-XDELTA_PATH = ".\\"
-"""
-path where xdelta3.exe is, use "define_xdelta_path()" to change it<br>
-By default, the path is where you run your code
-"""
+_XDELTA_PATH = ".\\"
 
-XDELTA = "xdelta3"
-"""
-xdelta command in shell
-"""
+_XDELTA = "xdelta3"
 
 
 def define_xdelta_path(path) -> int:
@@ -24,28 +17,28 @@ def define_xdelta_path(path) -> int:
     Returns:
         int: 0 if xdelta3.exe has been found in this path, -1 otherwise, but the path will still be change
     """
-    global XDELTA_PATH
+    global _XDELTA_PATH
     if not path.endswith(_os.path.sep):
         path = _os.path.join(path, '')
-    XDELTA_PATH = path
-    if not _os.path.exists(XDELTA_PATH):
+    _XDELTA_PATH = path
+    if not _os.path.exists(_XDELTA_PATH):
         return -1
     return 0
 
 
-def __find_xdelta() -> int:
+def _find_xdelta() -> int:
     """find exe of xdelta in XDELTA_PATH, and if found, change the value of XDELTA
 
     Returns:
         int: 0 in no error, -1 if xdelta exe not found
     """
-    global XDELTA
-    files_exe = [file for file in _os.listdir(XDELTA_PATH) if file.lower().endswith('.exe')]
+    global _XDELTA
+    files_exe = [file for file in _os.listdir(_XDELTA_PATH) if file.lower().endswith('.exe')]
     for file in files_exe:
         try:
             output = _sp.run([file, '--version'], stdout=_sp.PIPE, stderr=_sp.PIPE, creationflags=_sp.CREATE_NO_WINDOW)
             if "XDELTA" in str(output.stderr):
-                XDELTA = file
+                _XDELTA = file
                 return 0
         except Exception:
             continue
@@ -66,14 +59,14 @@ def create_patch(original_file, patched_file, name_patch_file="", patch_path="",
         int: 0 if the patch file is created, otherwise, return an error code.
 
     error code:<br>
-    -1 if XDELTA_PATH is not valid<br>
-    -2 if "original_file" is not found or is not a file<br>
-    -3 if "patched_file" is not found or is not a file<br>
-    -4 if the path in "patch_path" doesn't exist, or is not a folder<br>
+    -1 if XDELTA_PATH is not valid
+    -2 if "original_file" is not found or is not a file
+    -3 if "patched_file" is not found or is not a file
+    -4 if the path in "patch_path" doesn't exist, or is not a folder
     -5 if xdelta exe not found
     -6 if overwrite is set to False, and the command can't overwrite an existing file
     """
-    if XDELTA_PATH != "" and not _os.path.exists(XDELTA_PATH):
+    if _XDELTA_PATH != "" and not _os.path.exists(_XDELTA_PATH):
         return -1
     if not _os.path.exists(original_file) or not _os.path.isfile(original_file):
         return -2
@@ -88,11 +81,11 @@ def create_patch(original_file, patched_file, name_patch_file="", patch_path="",
     if not patch_path.endswith(_os.path.sep):
         patch_path = _os.path.join(patch_path, '')
 
-    if __find_xdelta() != 0:
+    if _find_xdelta() != 0:
         return -5
 
     command = [
-        XDELTA_PATH + XDELTA,
+        _XDELTA_PATH + _XDELTA,
         "-e",  # compress
         "-s",  # source
         original_file,
@@ -121,9 +114,9 @@ def apply_patch(file_to_patch, patch_file, name_patched_file="") -> int:
         int: 0 if the patch file is created, otherwise, return an error code.
 
     error code:<br>
-    -1 if Xdelta3.exe is not found<br>
-    -2 if "file_to_patch" is not found or is not a file<br>
-    -3 if "patch_file" is not found or is not a file<br>
+    -1 if Xdelta3.exe is not found
+    -2 if "file_to_patch" is not found or is not a file
+    -3 if "patch_file" is not found or is not a file
     -4 if the command has a problem
     -5 if xdelta exe not found
     """
@@ -132,7 +125,7 @@ def apply_patch(file_to_patch, patch_file, name_patched_file="") -> int:
         _sleep(0.3)
         _os.rename(name_patched_file, file_to_patch)
 
-    if XDELTA_PATH != "" and not _os.path.exists(XDELTA_PATH):
+    if _XDELTA_PATH != "" and not _os.path.exists(_XDELTA_PATH):
         return -1
     if not _os.path.exists(file_to_patch) or not _os.path.isfile(file_to_patch):
         return -2
@@ -146,11 +139,11 @@ def apply_patch(file_to_patch, patch_file, name_patched_file="") -> int:
         name_patched_file = _os.path.dirname(file_to_patch) + splitname[0] + "n" + splitname[1]
         overwrite = True
 
-    if __find_xdelta() != 0:
+    if _find_xdelta() != 0:
         return -5
 
     command = [
-        XDELTA_PATH + XDELTA,
+        _XDELTA_PATH + _XDELTA,
         "-f",
         "-d",  # uncompress
         "-s",  # source
