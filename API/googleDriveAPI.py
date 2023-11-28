@@ -1,25 +1,24 @@
-from oauth2client.service_account import ServiceAccountCredentials as sac
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseDownload
+from oauth2client.service_account import ServiceAccountCredentials as _sac
+from googleapiclient.discovery import build as _build
+from googleapiclient.http import MediaIoBaseDownload as _MediaIoBaseDownload
+from googleapiclient.http import MediaFileUpload as _MediaFileUpload
 
-import io
-import os
+import io as _io
+import os as _os
 
 try:
-    from credentials import credentials_info
-    MODULE_EXIST = True
+    from credentials import credentials_info as _credentials_info
+    _MODULE_EXIST = True
 except ImportError:
-    MODULE_EXIST = False
+    _MODULE_EXIST = False
 
-scope = ["https://www.googleapis.com/auth/drive"]
+_scope = ["https://www.googleapis.com/auth/drive"]
 
-MAX_RETRIES = 100
-WAIT_TIME = 5
+_is_credentials_file_exists = True
+_is_credentials_correct = True
 
-is_credentials_file_exists = True
-is_credentials_correct = True
-
-drive_service = None
+_credentials_email = None
+_drive_service = None
 
 
 def __init() -> int:
@@ -32,29 +31,32 @@ def __init() -> int:
     -1 if no credentials file found<br>
     -2 if credentials not correct
     """
-    global is_credentials_correct
-    global is_credentials_file_exists
-    global drive_service
-    if drive_service is None:
-        if MODULE_EXIST:
+    global _is_credentials_correct
+    global _is_credentials_file_exists
+    global _drive_service
+    global _credentials_email
+    if _drive_service is None:
+        if _MODULE_EXIST:
             try:
-                credentials = sac.from_json_keyfile_dict(credentials_info, scope)
-                drive_service = build('drive', 'v3', credentials=credentials)
-                is_credentials_correct = True
+                credentials = _sac.from_json_keyfile_dict(_credentials_info, _scope)
+                _credentials_email = credentials.service_account_email
+                _drive_service = _build('drive', 'v3', credentials=credentials)
+                _is_credentials_correct = True
             except Exception:
-                is_credentials_correct = False
-        elif os.path.exists("credentials.json"):
+                _is_credentials_correct = False
+        elif _os.path.exists("credentials.json"):
             try:
-                credentials = sac.from_json_keyfile_name('credentials.json', scope)
-                drive_service = build('drive', 'v3', credentials=credentials)
-                is_credentials_correct = True
+                credentials = _sac.from_json_keyfile_name('credentials.json', _scope)
+                _credentials_email = credentials.service_account_email
+                _drive_service = _build('drive', 'v3', credentials=credentials)
+                _is_credentials_correct = True
             except Exception:
-                is_credentials_correct = False
+                _is_credentials_correct = False
         else:
-            is_credentials_file_exists = False
-    if not is_credentials_file_exists:
+            _is_credentials_file_exists = False
+    if not _is_credentials_file_exists:
         return -1
-    if not is_credentials_correct:
+    if not _is_credentials_correct:
         return -2
     return 0
 
@@ -72,7 +74,7 @@ def list_files() -> (list[list[str]] | int):
     ret = __init()
     if ret != 0:
         return ret
-    results = drive_service.files().list().execute()
+    results = _drive_service.files().list().execute()
     files = results.get('files', [])
     file_info_list = []
 
@@ -104,7 +106,7 @@ def get_id_by_name(name_element) -> (str | int):
     if ret != 0:
         return ret
     query = f"name='{name_element}'"
-    results = drive_service.files().list(q=query).execute()
+    results = _drive_service.files().list(q=query).execute()
     files = results.get('files', [])
     if len(files) == 1:
         return files[0]['id']
@@ -135,26 +137,26 @@ def download_file(file_id, local_folder=".\\") -> int:
     -5 if file can't be downloaded(slide, forms, ...)
     """
     def google_sheet_as_excel(file_metadata, local_folder):
-        local_path = os.path.join(local_folder, file_metadata['name'] + '.xlsx')
+        local_path = _os.path.join(local_folder, file_metadata['name'] + '.xlsx')
         export_params = {'mimeType': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}
-        request = drive_service.files().export_media(fileId=file_metadata['id'], mimeType=export_params['mimeType'])
+        request = _drive_service.files().export_media(fileId=file_metadata['id'], mimeType=export_params['mimeType'])
         return request, local_path
 
     def google_doc_as_word(file_metadata, local_folder):
-        local_path = os.path.join(local_folder, file_metadata['name'] + '.docx')
+        local_path = _os.path.join(local_folder, file_metadata['name'] + '.docx')
         export_params = {'mimeType': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'}
-        request = drive_service.files().export_media(fileId=file_metadata['id'], mimeType=export_params['mimeType'])
+        request = _drive_service.files().export_media(fileId=file_metadata['id'], mimeType=export_params['mimeType'])
         return request, local_path
 
     ret = __init()
     if ret != 0:
         return ret
 
-    if not os.path.exists(local_folder):
+    if not _os.path.exists(local_folder):
         return -3
 
     try:
-        file_metadata = drive_service.files().get(fileId=file_id).execute()
+        file_metadata = _drive_service.files().get(fileId=file_id).execute()
     except Exception:
         return -4
 
@@ -166,12 +168,12 @@ def download_file(file_id, local_folder=".\\") -> int:
         else:
             return -5
     else:
-        request = drive_service.files().get_media(fileId=file_id)
+        request = _drive_service.files().get_media(fileId=file_id)
         file_name = file_metadata['name']
-        local_path = os.path.join(local_folder, file_name)
+        local_path = _os.path.join(local_folder, file_name)
 
-    with io.FileIO(local_path, 'wb') as fh:
-        downloader = MediaIoBaseDownload(fh, request)
+    with _io.FileIO(local_path, 'wb') as fh:
+        downloader = _MediaIoBaseDownload(fh, request)
         done = False
         while not done:
             _, done = downloader.next_chunk()
@@ -201,7 +203,7 @@ def download_files_in_folder(folder_id, local_folder=".\\", keep_folders=False) 
         return ret
 
     try:
-        results = drive_service.files().list(
+        results = _drive_service.files().list(
             q=f"'{folder_id}' in parents and trashed=false",
             fields='files(id, name, mimeType)'
         ).execute()
@@ -212,9 +214,9 @@ def download_files_in_folder(folder_id, local_folder=".\\", keep_folders=False) 
     for file in files:
         if file['mimeType'] == 'application/vnd.google-apps.folder':
             if keep_folders:
-                new_local_folder = os.path.join(local_folder, file['name'])
-                if not os.path.exists(new_local_folder):
-                    os.makedirs(new_local_folder)
+                new_local_folder = _os.path.join(local_folder, file['name'])
+                if not _os.path.exists(new_local_folder):
+                    _os.makedirs(new_local_folder)
             else:
                 new_local_folder = local_folder
             download_files_in_folder(file['id'], new_local_folder, keep_folders)
@@ -223,16 +225,16 @@ def download_files_in_folder(folder_id, local_folder=".\\", keep_folders=False) 
     return ret
 
 
-def create_folder(folder_name, location_id) -> int:
+def create_folder(folder_name, id_location) -> (str | int):
     """create a folder in another folder
 
     Args:
         folder_name (str): name the folder will have
-        location_id (str): if of a folder or file.
+        id_location (str): id of a folder or file where to create the folder.
                            If file, the folder will be in the same folder than this file.
 
     Returns:
-        int: 0 if no problem. Error code otherwise.
+        int: id of the folder created. Error code otherwise.
 
     error code:<br>
     -1 if no credentials file found<br>
@@ -246,10 +248,114 @@ def create_folder(folder_name, location_id) -> int:
     folder_metadata = {
         'name': folder_name,
         'mimeType': 'application/vnd.google-apps.folder',
-        'parents': [location_id]
+        'parents': [id_location]
     }
     try:
-        drive_service.files().create(body=folder_metadata, fields='id').execute()
+        folder = _drive_service.files().create(body=folder_metadata, fields='id').execute()
+        return folder['id']
     except Exception:
         return -3
-    return 0
+
+
+def upload_file_or_folder(file_or_folder_path, id_location) -> int:
+    """upload a file, or a folder, in the drive id location
+
+    Args:
+        file_or_folder_path (str): path of the file or folder to upload
+        parent_folder_id (str): id of a folder or file where to create the folder.
+                                If file, the folder will be in the same folder than this file.
+
+    Returns:
+        int: 0 if no problem. Error code otherwise.
+
+    error code:<br>
+    -1 if no credentials file found<br>
+    -2 if credentials not correct<br>
+    -3 if can't upload a file
+    """
+    def __upload_file(file_path, parent_folder_id):
+        file_metadata = {'name': _os.path.basename(file_path), 'parents': [parent_folder_id]}
+        media = _MediaFileUpload(file_path)
+        request = _drive_service.files().create(body=file_metadata, media_body=media, fields='id')
+        try:
+            request.execute()
+            return 0
+        except Exception:
+            return -3
+
+    def __upload_folder(folder_path, parent_folder_id):
+        folder_id = create_folder(_os.path.basename(folder_path), parent_folder_id)
+        ret = 0
+        for elem in _os.listdir(folder_path):
+            elem_path = _os.path.join(folder_path, elem)
+            if _os.path.isfile(elem_path):
+                ret = __upload_file(elem_path, folder_id)
+                if ret == -3:
+                    return -3
+            elif _os.path.isdir(elem_path):
+                ret = __upload_folder(elem_path, folder_id)
+        return ret
+
+    ret = __init()
+    if ret != 0:
+        return ret
+    if _os.path.isfile(file_or_folder_path):
+        ret = __upload_file(file_or_folder_path, id_location)
+    else:
+        ret = __upload_folder(file_or_folder_path, id_location)
+    return ret
+
+
+def delete_file(file_id) -> int:
+    """delete a file or folder in drive,
+    only if owned by the service account
+
+    Args:
+        file_id (str): id of the element
+
+    Returns:
+        int: 0 if no problem. Error code otherwise.
+
+    error code:<br>
+    -1 if no credentials file found<br>
+    -2 if credentials not correct<br>
+    -3 if id incorrect<br>
+    -4 if file not owned by the service account
+    """
+    ret = __init()
+    if ret != 0:
+        return ret
+    try:
+        _drive_service.files().delete(fileId=file_id).execute()
+        return 0
+    except Exception as e:
+        if str(e).startswith("<HttpError 403"):
+            return -4
+        return -3
+
+
+def delete_all_files_owned_and_not_shared():
+    """delete all files owned by the service account, not shared with anyone
+    """
+    def is_file_owned_and_not_shared(file_id):
+        ret = __init()
+        if ret != 0:
+            return ret
+
+        try:
+            file_info = _drive_service.files().get(fileId=file_id, fields='owners,permissions').execute()
+
+            owners = file_info.get('owners', [])
+            if len(owners) == 1 and owners[0]['emailAddress'] == _credentials_email:
+                permissions = file_info.get('permissions', [])
+                if len(permissions) == 1 and permissions[0]['type'] == 'user' and \
+                   permissions[0]['emailAddress'] == _credentials_email:
+                    return True
+        except Exception:
+            return -3
+        return False
+
+    files = list_files()
+    for file in files:
+        if is_file_owned_and_not_shared(file[1]):
+            delete_file(file[1])
