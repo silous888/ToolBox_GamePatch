@@ -1,6 +1,6 @@
-import subprocess as sp
-import os
-from time import sleep
+import subprocess as _sp
+import os as _os
+from time import sleep as _sleep
 
 
 XDELTA_PATH = ".\\"
@@ -25,10 +25,10 @@ def define_xdelta_path(path) -> int:
         int: 0 if xdelta3.exe has been found in this path, -1 otherwise, but the path will still be change
     """
     global XDELTA_PATH
-    if not path.endswith(os.path.sep):
-        path = os.path.join(path, '')
+    if not path.endswith(_os.path.sep):
+        path = _os.path.join(path, '')
     XDELTA_PATH = path
-    if not os.path.exists(XDELTA_PATH):
+    if not _os.path.exists(XDELTA_PATH):
         return -1
     return 0
 
@@ -40,10 +40,10 @@ def __find_xdelta() -> int:
         int: 0 in no error, -1 if xdelta exe not found
     """
     global XDELTA
-    files_exe = [file for file in os.listdir(XDELTA_PATH) if file.lower().endswith('.exe')]
+    files_exe = [file for file in _os.listdir(XDELTA_PATH) if file.lower().endswith('.exe')]
     for file in files_exe:
         try:
-            output = sp.run([file, '--version'], stdout=sp.PIPE, stderr=sp.PIPE, creationflags=sp.CREATE_NO_WINDOW)
+            output = _sp.run([file, '--version'], stdout=_sp.PIPE, stderr=_sp.PIPE, creationflags=_sp.CREATE_NO_WINDOW)
             if "XDELTA" in str(output.stderr):
                 XDELTA = file
                 return 0
@@ -73,20 +73,20 @@ def create_patch(original_file, patched_file, name_patch_file="", patch_path="",
     -5 if xdelta exe not found
     -6 if overwrite is set to False, and the command can't overwrite an existing file
     """
-    if XDELTA_PATH != "" and not os.path.exists(XDELTA_PATH):
+    if XDELTA_PATH != "" and not _os.path.exists(XDELTA_PATH):
         return -1
-    if not os.path.exists(original_file) or not os.path.isfile(original_file):
+    if not _os.path.exists(original_file) or not _os.path.isfile(original_file):
         return -2
-    if not os.path.exists(patched_file) or not os.path.isfile(patched_file):
+    if not _os.path.exists(patched_file) or not _os.path.isfile(patched_file):
         return -3
     if patch_path != "" and \
-       (not os.path.exists(patch_path) or not os.path.isdir(patch_path)):
+       (not _os.path.exists(patch_path) or not _os.path.isdir(patch_path)):
         return -4
 
     if len(name_patch_file) == 0:
-        name_patch_file = os.path.splitext(os.path.basename(original_file))[0]
-    if not patch_path.endswith(os.path.sep):
-        patch_path = os.path.join(patch_path, '')
+        name_patch_file = _os.path._splitext(_os.path.basename(original_file))[0]
+    if not patch_path.endswith(_os.path.sep):
+        patch_path = _os.path.join(patch_path, '')
 
     if __find_xdelta() != 0:
         return -5
@@ -101,7 +101,7 @@ def create_patch(original_file, patched_file, name_patch_file="", patch_path="",
     ]
     if overwrite:
         command.insert(1, "-f")
-    output = sp.run(command, stdout=sp.PIPE, creationflags=sp.CREATE_NO_WINDOW)
+    output = _sp.run(command, stdout=_sp.PIPE, creationflags=_sp.CREATE_NO_WINDOW)
     if output.returncode != 0:
         return -5
     return output.returncode
@@ -128,22 +128,22 @@ def apply_patch(file_to_patch, patch_file, name_patched_file="") -> int:
     -5 if xdelta exe not found
     """
     def overwrite_original_file():
-        os.remove(file_to_patch)
-        sleep(0.3)
-        os.rename(name_patched_file, file_to_patch)
+        _os.remove(file_to_patch)
+        _sleep(0.3)
+        _os.rename(name_patched_file, file_to_patch)
 
-    if XDELTA_PATH != "" and not os.path.exists(XDELTA_PATH):
+    if XDELTA_PATH != "" and not _os.path.exists(XDELTA_PATH):
         return -1
-    if not os.path.exists(file_to_patch) or not os.path.isfile(file_to_patch):
+    if not _os.path.exists(file_to_patch) or not _os.path.isfile(file_to_patch):
         return -2
-    if not os.path.exists(patch_file) or not os.path.isfile(patch_file):
+    if not _os.path.exists(patch_file) or not _os.path.isfile(patch_file):
         return -3
 
     overwrite = False
 
     if len(name_patched_file) == 0:
-        splitname = os.path.splitext(os.path.basename(file_to_patch))
-        name_patched_file = os.path.dirname(file_to_patch) + splitname[0] + "n" + splitname[1]
+        splitname = _os.path.splitext(_os.path.basename(file_to_patch))
+        name_patched_file = _os.path.dirname(file_to_patch) + splitname[0] + "n" + splitname[1]
         overwrite = True
 
     if __find_xdelta() != 0:
@@ -158,8 +158,8 @@ def apply_patch(file_to_patch, patch_file, name_patched_file="") -> int:
         patch_file,
         name_patched_file,
     ]
-    process = sp.run(command, stdout=sp.PIPE, stderr=sp.PIPE,
-                     creationflags=sp.CREATE_NO_WINDOW)
+    process = _sp.run(command, stdout=_sp.PIPE, stderr=_sp.PIPE,
+                      creationflags=_sp.CREATE_NO_WINDOW)
 
     if overwrite and process.returncode == 0:
         overwrite_original_file()
