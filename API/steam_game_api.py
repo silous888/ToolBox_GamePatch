@@ -1,6 +1,6 @@
-import winreg as _winreg
 import os as _os
 import shutil as _shutil
+import winreg as _winreg
 
 
 def find_steam_folder_path() -> (str | int):

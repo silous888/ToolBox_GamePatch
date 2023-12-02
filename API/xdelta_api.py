@@ -1,5 +1,5 @@
-import subprocess as _sp
 import os as _os
+import subprocess as _sp
 from time import sleep as _sleep
 
 

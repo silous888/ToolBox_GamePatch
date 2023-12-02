@@ -1,7 +1,7 @@
-from oauth2client.service_account import ServiceAccountCredentials as _sac
 from googleapiclient.discovery import build as _build
 from googleapiclient.http import MediaIoBaseDownload as _MediaIoBaseDownload
 from googleapiclient.http import MediaFileUpload as _MediaFileUpload
+from oauth2client.service_account import ServiceAccountCredentials as _sac
 
 import io as _io
 import os as _os
@@ -19,6 +19,8 @@ _is_credentials_correct = True
 
 _credentials_email = None
 _drive_service = None
+
+_credentials_path = ".\\credentials.json"
 
 
 def __init() -> int:
@@ -46,7 +48,7 @@ def __init() -> int:
                 _is_credentials_correct = False
         elif _os.path.exists("credentials.json"):
             try:
-                credentials = _sac.from_json_keyfile_name('credentials.json', _scope)
+                credentials = _sac.from_json_keyfile_name(_credentials_path, _scope)
                 _credentials_email = credentials.service_account_email
                 _drive_service = _build('drive', 'v3', credentials=credentials)
                 _is_credentials_correct = True
@@ -59,6 +61,21 @@ def __init() -> int:
     if not _is_credentials_correct:
         return -2
     return 0
+
+
+def set_credentials_path(credentials_path=".\\credentials.json") -> None:
+    """change the path of the credentials, if json file,
+    if you give a folder, the path will be credentials_path + "credentials.json
+    the path will be set, even if the path doesn't exist yet.
+
+    Args:
+        credentials_path (str, optional): path of the folder or file. Defaults to ".\\credentials.json".
+    """
+    global _credentials_path
+    if _os.path.isdir(credentials_path):
+        _credentials_path = _os.path.join(credentials_path, "credentials.json")
+    if _os.path.isfile(credentials_path):
+        _credentials_path = credentials_path
 
 
 def list_files() -> (list[list[str]] | int):
