@@ -1,14 +1,7 @@
-## API: steamGameAPI.py
+## API: steam_game_api.py
 
 This file includes all the functions necessary to find the location of a Steam game folder and to copy data to or from the game folder. Here is a brief explanation of functions you will likely need, but more details can be found in the HTML documentation.
 
-
-To use it, download the file and, in your Python script, include the following:
-
-```python
-import steamGameAPI as sga
-```
-You can now access functions in the file using `sga.function_name()`.
 
 Among the available functions, three are particularly useful.
 
@@ -25,10 +18,10 @@ def find_game_path(game_folder_name) -> (str | int)
     Returns:
         str | int: path of the folder game, or error code
 
-    error code:<br>
-    -1 if path of steam not found in register<br>
-    -2 if libraryfolders.vdf not found<br>
-    -3 if game not found in steam libraries<br>
+    error code:
+    -1 if path of steam not found in register
+    -2 if libraryfolders.vdf not found
+    -3 if game not found in steam libraries
     -4 game_folder_name not a string
     """
 ```
@@ -56,11 +49,11 @@ def copy_data_in_steam_game_folder(game_folder_name,
     Returns:
         int: 0 if finshed without error, error code if not 0
 
-    error code:<br>
-    -1 if path of steam not found in register<br>
-    -2 if libraryfolders.vdf not found<br>
-    -3 if game not found in steam libraries<br>
-    -4 game_folder_name not a string<br>
+    error code:
+    -1 if path of steam not found in register
+    -2 if libraryfolders.vdf not found
+    -3 if game not found in steam libraries
+    -4 game_folder_name not a string
     -5 data_to_copy path does not exist
     """
 ```
@@ -98,13 +91,13 @@ def copy_data_from_steam_game_folder(game_folder_name,
     Returns:
         int: 0 if finshed without error, error code if not 0
 
-    error code:<br>
-    -1 if path of steam not found in register<br>
-    -2 if libraryfolders.vdf not found<br>
-    -3 if game not found in steam libraries<br>
-    -4 game_folder_name not a string<br>
-    -5 dest path does not exist<br>
-    -6 data_to_copy not a string<br>
+    error code:
+    -1 if path of steam not found in register
+    -2 if libraryfolders.vdf not found
+    -3 if game not found in steam libraries
+    -4 game_folder_name not a string
+    -5 dest path does not exist
+    -6 data_to_copy not a string
     -7 data_to_copy does not exist
     """
 ```

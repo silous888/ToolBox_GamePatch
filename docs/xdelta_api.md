@@ -1,4 +1,4 @@
-## xdeltaAPI.py
+## xdelta_api.py
 
 This file has two functions: one to create a patch, and the other to apply the patch. You need to download xdelta exe in order to use this file. You can download it [here](https://github.com/jmacd/xdelta-gpl/releases).
 
@@ -34,7 +34,7 @@ create_patch(original_file, patched_file, name_patch_file="", patch_path="", ove
     Returns:
         int: 0 if the patch file is created, otherwise, return an error code.
 
-    error code:<br>
+    error code:
     -1 if XDELTA_PATH is not valid
     -2 if "original_file" is not found or is not a file
     -3 if "patched_file" is not found or is not a file
@@ -67,7 +67,7 @@ apply_patch(file_to_patch, patch_file, name_patched_file="")
     Returns:
         int: 0 if the patch file is created, otherwise, return an error code.
 
-    error code:<br>
+    error code:
     -1 if Xdelta3.exe is not found
     -2 if "file_to_patch" is not found or is not a file
     -3 if "patch_file" is not found or is not a file

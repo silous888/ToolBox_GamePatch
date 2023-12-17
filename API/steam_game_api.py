@@ -9,7 +9,7 @@ def find_steam_folder_path() -> (str | int):
     Returns:
         str | int: path of steam, or error code
 
-    error code:<br>
+    error code:
     -1 if path of steam not found in register
 
     """
@@ -28,8 +28,8 @@ def find_steam_library_folders_path() -> (list[str] | int):
     Returns:
         list(str) | int: list with every library folders, or error code
 
-    error code:<br>
-    -1 if path of steam not found in register<br>
+    error code:
+    -1 if path of steam not found in register
     -2 if libraryfolders.vdf not found
     """
     def __extract_path_in_textline(line) -> (str | None):
@@ -82,10 +82,10 @@ def find_game_path(game_folder_name) -> (str | int):
     Returns:
         str | int: path of the folder game, or error code
 
-    error code:<br>
-    -1 if path of steam not found in register<br>
-    -2 if libraryfolders.vdf not found<br>
-    -3 if game not found in steam libraries<br>
+    error code:
+    -1 if path of steam not found in register
+    -2 if libraryfolders.vdf not found
+    -3 if game not found in steam libraries
     -4 game_folder_name not a string
     """
     if not isinstance(game_folder_name, str):
@@ -113,11 +113,11 @@ def copy_data_in_steam_game_folder(game_folder_name, data_to_copy, overwrite=Tru
     Returns:
         int: 0 if finshed without error, error code if not 0
 
-    error code:<br>
-    -1 if path of steam not found in register<br>
-    -2 if libraryfolders.vdf not found<br>
-    -3 if game not found in steam libraries<br>
-    -4 game_folder_name not a string<br>
+    error code:
+    -1 if path of steam not found in register
+    -2 if libraryfolders.vdf not found
+    -3 if game not found in steam libraries
+    -4 game_folder_name not a string
     -5 data_to_copy path does not exist
     """
     if not _os.path.exists(data_to_copy) or not isinstance(data_to_copy, str):
@@ -152,13 +152,13 @@ def copy_data_from_steam_game_folder(game_folder_name, dest, data_to_copy="", ov
     Returns:
         int: 0 if finshed without error, error code if not 0
 
-    error code:<br>
-    -1 if path of steam not found in register<br>
-    -2 if libraryfolders.vdf not found<br>
-    -3 if game not found in steam libraries<br>
-    -4 game_folder_name not a string<br>
-    -5 dest path does not exist<br>
-    -6 data_to_copy not a string<br>
+    error code:
+    -1 if path of steam not found in register
+    -2 if libraryfolders.vdf not found
+    -3 if game not found in steam libraries
+    -4 game_folder_name not a string
+    -5 dest path does not exist
+    -6 data_to_copy not a string
     -7 data_to_copy does not exist
     """
     if not _os.path.exists(dest) or not isinstance(dest, str):

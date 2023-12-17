@@ -29,8 +29,8 @@ def __init() -> int:
     Returns:
         int: 0 if access are given, otherwise, return an error code.
 
-    error code:<br>
-    -1 if no credentials file found<br>
+    error code:
+    -1 if no credentials file found
     -2 if credentials not correct
     """
     global _is_credentials_correct
@@ -105,10 +105,10 @@ def list_files() -> (list[list[str]] | int):
     """give the list of every element the gmail adress has access.
 
     Returns:
-        list(list(str,3)): list with for each element, 0: name, 1: id, 2: type. Error code otherwise
+        (list(list(str,3)) | int): list with for each element, 0: name, 1: id, 2: type. Error code otherwise
 
-    error code:<br>
-    -1 if no credentials file found<br>
+    error code:
+    -1 if no credentials file found
     -2 if credentials not correct
     """
     ret = __init()
@@ -136,9 +136,9 @@ def get_id_by_name(name_element) -> (str | int):
     Returns:
         (str | int): id of the element. Error code otherwise.
 
-    error code:<br>
-    -1 if no credentials file found<br>
-    -2 if credentials not correct<br>
+    error code:
+    -1 if no credentials file found
+    -2 if credentials not correct
     -3 if no element with this name
     -4 if more than one element with this name
     """
@@ -169,11 +169,11 @@ def download_file(file_id, local_folder=".\\") -> int:
     Returns:
         int: 0 if no problem. Error code otherwise
 
-    error code:<br>
-    -1 if no credentials file found<br>
-    -2 if credentials not correct<br>
-    -3 if local_folder doesn't exist<br>
-    -4 if file_id not correct<br>
+    error code:
+    -1 if no credentials file found
+    -2 if credentials not correct
+    -3 if local_folder doesn't exist
+    -4 if file_id not correct
     -5 if file can't be downloaded(slide, forms, ...)
     """
     def google_sheet_as_excel(file_metadata, local_folder):
@@ -231,11 +231,11 @@ def download_files_in_folder(folder_id, local_folder=".\\", keep_folders=False) 
     Returns:
         int: 0 if no problem. Error code otherwise
 
-    error code:<br>
-    -1 if no credentials file found<br>
-    -2 if credentials not correct<br>
-    -3 if local_folder doesn't exist<br>
-    -4 if file_id not correct<br>
+    error code:
+    -1 if no credentials file found
+    -2 if credentials not correct
+    -3 if local_folder doesn't exist
+    -4 if file_id not correct
     -5 if file can't be downloaded(slide, forms, ...)
     """
     ret = __init()
@@ -276,9 +276,9 @@ def create_folder(folder_name, id_location) -> (str | int):
     Returns:
         int: id of the folder created. Error code otherwise.
 
-    error code:<br>
-    -1 if no credentials file found<br>
-    -2 if credentials not correct<br>
+    error code:
+    -1 if no credentials file found
+    -2 if credentials not correct
     -3 if parent_folder_id not correct
     """
     ret = __init()
@@ -297,7 +297,7 @@ def create_folder(folder_name, id_location) -> (str | int):
         return -3
 
 
-def upload_file_or_folder(file_or_folder_path, id_location) -> int:
+def upload(file_or_folder_path, id_location) -> int:
     """upload a file, or a folder, in the drive id location
 
     Args:
@@ -308,9 +308,9 @@ def upload_file_or_folder(file_or_folder_path, id_location) -> int:
     Returns:
         int: 0 if no problem. Error code otherwise.
 
-    error code:<br>
-    -1 if no credentials file found<br>
-    -2 if credentials not correct<br>
+    error code:
+    -1 if no credentials file found
+    -2 if credentials not correct
     -3 if can't upload a file
     """
     def __upload_file(file_path, parent_folder_id):
@@ -356,10 +356,10 @@ def delete_file(file_id) -> int:
     Returns:
         int: 0 if no problem. Error code otherwise.
 
-    error code:<br>
-    -1 if no credentials file found<br>
-    -2 if credentials not correct<br>
-    -3 if id incorrect<br>
+    error code:
+    -1 if no credentials file found
+    -2 if credentials not correct
+    -3 if id incorrect
     -4 if file not owned by the service account
     """
     ret = __init()

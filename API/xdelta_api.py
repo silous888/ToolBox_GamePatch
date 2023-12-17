@@ -58,7 +58,7 @@ def create_patch(original_file, patched_file, name_patch_file="", patch_path="",
     Returns:
         int: 0 if the patch file is created, otherwise, return an error code.
 
-    error code:<br>
+    error code:
     -1 if XDELTA_PATH is not valid
     -2 if "original_file" is not found or is not a file
     -3 if "patched_file" is not found or is not a file
@@ -113,7 +113,7 @@ def apply_patch(file_to_patch, patch_file, name_patched_file="") -> int:
     Returns:
         int: 0 if the patch file is created, otherwise, return an error code.
 
-    error code:<br>
+    error code:
     -1 if Xdelta3.exe is not found
     -2 if "file_to_patch" is not found or is not a file
     -3 if "patch_file" is not found or is not a file
