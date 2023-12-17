@@ -78,6 +78,29 @@ def set_credentials_path(credentials_path=".\\credentials.json") -> None:
         _credentials_path = credentials_path
 
 
+def has_access_to_element(element_id) -> (bool | int):
+    """Check if the service account of the credentials has access to an element with the given ID.
+
+    Args:
+        element_id (str): ID of the element to check.
+
+    Returns:
+        (bool | int): True if access, False if no access. Error code otherwise
+
+    error code:
+    -1 if no credentials file found
+    -2 if credentials not correct
+    """
+    ret = __init()
+    if ret != 0:
+        return ret
+    try:
+        _ = _drive_service.files().get(fileId=element_id).execute()
+        return True
+    except Exception:
+        return False
+
+
 def list_files() -> (list[list[str]] | int):
     """give the list of every element the gmail adress has access.
 
