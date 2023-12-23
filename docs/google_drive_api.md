@@ -7,6 +7,13 @@ You need Google API credentials to use this file. To obtain credentials, refer t
 
 To grant access to a file or folder for your service account, you need to share it with the email address associated with the service account.
 
+You will need to pip install two libraries :
+
+```bash
+pip install oauth2client
+pip install google-api-python-client
+```
+
 The first useful functions help determine which elements the service account has access to. The ID is the string of random character in the url, but you can obtain it by using *list_files()* or *get_id_by_name()*.
 
 *has_access_to_element()* will tell you if an element is shared with the service account.
