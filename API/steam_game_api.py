@@ -1,6 +1,6 @@
-import winreg
-import os
-import shutil
+import os as _os
+import shutil as _shutil
+import winreg as _winreg
 
 
 def find_steam_folder_path() -> (str | int):
@@ -9,15 +9,15 @@ def find_steam_folder_path() -> (str | int):
     Returns:
         str | int: path of steam, or error code
 
-    error code:<br>
+    error code:
     -1 if path of steam not found in register
 
     """
     KEY_PATH_STEAM = r"SOFTWARE\\Valve\\Steam"
     KEY_NAME = "SteamPath"
     try:
-        key_steam = winreg.OpenKey(winreg.HKEY_CURRENT_USER, KEY_PATH_STEAM, 0, winreg.KEY_READ)
-        return winreg.QueryValueEx(key_steam, KEY_NAME)[0]
+        key_steam = _winreg.OpenKey(_winreg.HKEY_CURRENT_USER, KEY_PATH_STEAM, 0, _winreg.KEY_READ)
+        return _winreg.QueryValueEx(key_steam, KEY_NAME)[0]
     except IOError:
         return -1
 
@@ -28,8 +28,8 @@ def find_steam_library_folders_path() -> (list[str] | int):
     Returns:
         list(str) | int: list with every library folders, or error code
 
-    error code:<br>
-    -1 if path of steam not found in register<br>
+    error code:
+    -1 if path of steam not found in register
     -2 if libraryfolders.vdf not found
     """
     def __extract_path_in_textline(line) -> (str | None):
@@ -62,7 +62,7 @@ def find_steam_library_folders_path() -> (list[str] | int):
         return -1
     game_folders = []
     file_libraryfolders = steam_folder + "\\steamapps\\libraryfolders.vdf"
-    if os.path.exists(file_libraryfolders):
+    if _os.path.exists(file_libraryfolders):
         with open(file_libraryfolders, "r") as file:
             for line in file:
                 path_library = __extract_path_in_textline(line)
@@ -77,15 +77,15 @@ def find_game_path(game_folder_name) -> (str | int):
     """find path of a steam game
 
     Args:
-        game_folder_name (str): exact name of the steam game folder
+        game_folder_name (str): exact name of the steam game folder in SteamLibrary\\steamapps\\common\\
 
     Returns:
         str | int: path of the folder game, or error code
 
-    error code:<br>
-    -1 if path of steam not found in register<br>
-    -2 if libraryfolders.vdf not found<br>
-    -3 if game not found in steam libraries<br>
+    error code:
+    -1 if path of steam not found in register
+    -2 if libraryfolders.vdf not found
+    -3 if game not found in steam libraries
     -4 game_folder_name not a string
     """
     if not isinstance(game_folder_name, str):
@@ -97,7 +97,7 @@ def find_game_path(game_folder_name) -> (str | int):
     EXTRA_PATH = "\\steamapps\\common\\"
     for folder in library_folders:
         full_path = folder + EXTRA_PATH + game_folder_name
-        if os.path.exists(full_path):
+        if _os.path.exists(full_path):
             return full_path
     return -3
 
@@ -113,30 +113,30 @@ def copy_data_in_steam_game_folder(game_folder_name, data_to_copy, overwrite=Tru
     Returns:
         int: 0 if finshed without error, error code if not 0
 
-    error code:<br>
-    -1 if path of steam not found in register<br>
-    -2 if libraryfolders.vdf not found<br>
-    -3 if game not found in steam libraries<br>
-    -4 game_folder_name not a string<br>
+    error code:
+    -1 if path of steam not found in register
+    -2 if libraryfolders.vdf not found
+    -3 if game not found in steam libraries
+    -4 game_folder_name not a string
     -5 data_to_copy path does not exist
     """
-    if not os.path.exists(data_to_copy) or not isinstance(data_to_copy, str):
+    if not _os.path.exists(data_to_copy) or not isinstance(data_to_copy, str):
         return -5
     game_path = find_game_path(game_folder_name)
     if isinstance(game_path, int):
         return game_path
-    if (os.path.isfile(data_to_copy) and (overwrite or
-       not os.path.exists(os.path.join(game_path, os.path.basename(data_to_copy))))):
-        shutil.copy(data_to_copy, game_path)
+    if (_os.path.isfile(data_to_copy) and (overwrite or
+       not _os.path.exists(_os.path.join(game_path, _os.path.basename(data_to_copy))))):
+        _shutil.copy(data_to_copy, game_path)
 
-    for root, _, files in os.walk(data_to_copy):
-        paste_folder = os.path.join(game_path, root[len(data_to_copy):].lstrip("\\"))
+    for root, _, files in _os.walk(data_to_copy):
+        paste_folder = _os.path.join(game_path, root[len(data_to_copy):].lstrip("\\"))
         print(paste_folder)
-        if not os.path.exists(paste_folder):
-            os.makedirs(paste_folder)
+        if not _os.path.exists(paste_folder):
+            _os.makedirs(paste_folder)
         for file in files:
-            if overwrite or not os.path.exists(os.path.join(paste_folder, file)):
-                shutil.copy(os.path.join(root, file), paste_folder)
+            if overwrite or not _os.path.exists(_os.path.join(paste_folder, file)):
+                _shutil.copy(_os.path.join(root, file), paste_folder)
     return 0
 
 
@@ -152,17 +152,17 @@ def copy_data_from_steam_game_folder(game_folder_name, dest, data_to_copy="", ov
     Returns:
         int: 0 if finshed without error, error code if not 0
 
-    error code:<br>
-    -1 if path of steam not found in register<br>
-    -2 if libraryfolders.vdf not found<br>
-    -3 if game not found in steam libraries<br>
-    -4 game_folder_name not a string<br>
-    -5 dest path does not exist<br>
-    -6 data_to_copy not a string<br>
+    error code:
+    -1 if path of steam not found in register
+    -2 if libraryfolders.vdf not found
+    -3 if game not found in steam libraries
+    -4 game_folder_name not a string
+    -5 dest path does not exist
+    -6 data_to_copy not a string
     -7 data_to_copy does not exist
     """
-    if not os.path.exists(dest) or not isinstance(dest, str):
-        print(not os.path.exists(dest))
+    if not _os.path.exists(dest) or not isinstance(dest, str):
+        print(not _os.path.exists(dest))
         print(not isinstance(dest, str))
         return -5
     if not isinstance(data_to_copy, str):
@@ -170,20 +170,20 @@ def copy_data_from_steam_game_folder(game_folder_name, dest, data_to_copy="", ov
     game_path = find_game_path(game_folder_name)
     if isinstance(game_path, int):
         return game_path
-    if not os.path.exists(os.path.join(game_path, data_to_copy)):
+    if not _os.path.exists(_os.path.join(game_path, data_to_copy)):
         return -7
-    path_data_to_copy = os.path.join(game_path, data_to_copy)
+    path_data_to_copy = _os.path.join(game_path, data_to_copy)
     print(path_data_to_copy)
-    if (os.path.isfile(path_data_to_copy) and (overwrite or
-       (not os.path.exists(os.path.join(dest, os.path.basename(data_to_copy)))))):
-        shutil.copy(path_data_to_copy, dest)
+    if (_os.path.isfile(path_data_to_copy) and (overwrite or
+       (not _os.path.exists(_os.path.join(dest, _os.path.basename(data_to_copy)))))):
+        _shutil.copy(path_data_to_copy, dest)
 
-    for root, _, files in os.walk(path_data_to_copy):
-        paste_folder = os.path.join(dest, root[len(path_data_to_copy):])
+    for root, _, files in _os.walk(path_data_to_copy):
+        paste_folder = _os.path.join(dest, root[len(path_data_to_copy):])
         print(paste_folder)
-        if not os.path.exists(paste_folder):
-            os.makedirs(paste_folder)
+        if not _os.path.exists(paste_folder):
+            _os.makedirs(paste_folder)
         for file in files:
-            if overwrite or not os.path.exists(os.path.join(paste_folder, file)):
-                shutil.copy(os.path.join(root, file), paste_folder)
+            if overwrite or not _os.path.exists(_os.path.join(paste_folder, file)):
+                _shutil.copy(_os.path.join(root, file), paste_folder)
     return 0

@@ -4,8 +4,10 @@ __pycache__/
 *.pyo
 *.pyd
 
-# other
+# test
 test.py
+test_folder/
+credentials.py
 
 # file type
 *.bat
