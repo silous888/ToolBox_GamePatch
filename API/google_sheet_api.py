@@ -22,6 +22,7 @@ _credentials_email = None
 
 _credentials_path = ".\\credentials.json"
 _gc = None
+_current_spreadsheet = None
 
 _MAX_RETRIES = 100
 _WAIT_TIME = 2
@@ -82,20 +83,60 @@ def set_credentials_path(credentials_path=".\\credentials.json") -> None:
         _credentials_path = credentials_path
 
 
-def _decorator_wait_token(func):
+def _decorator_wait_token(func) -> (tuple | int):
     """wait for token if necessary
 
     Args:
         func (func): function to decorate, first return need to be a boolean of success of the function
 
     Returns:
-        Tuple: returns of the decorated functions, except the first result. If no token after waiting, False
+        Tuple: returns of the decorated functions, except the first result. If no token after waiting, -1
     """
-    def wrapper():
+    def wrapper(*args, **kwargs):
         for _ in range(_MAX_RETRIES):
-            results = func()
-            if results[0]:
-                return results[1:]
+            results = func(*args, **kwargs)
+            if isinstance(results, tuple) and results[0]:
+                if len(results[1:]) > 1:
+                    return results[1:]
+                else:
+                    return results[1]
+            elif results:
+                return results
             _time.sleep(_WAIT_TIME)
-        return False
+        return -3
     return wrapper
+
+
+@_decorator_wait_token
+def open_sheet(sheet_id) -> int:
+    """open a sheet for others functions
+
+    Args:
+        sheet_id (str): id of the sheet
+
+    Returns:
+        int: 0 if no error, error code otherwise
+
+    error code:
+    -1 if no credentials file found
+    -2 if credentials not correct
+    -3 if no token, end of waiting time
+    -4 if sheet id not correct
+    """
+    global _current_spreadsheet
+
+    ret = __init()
+    if ret != 0:
+        return ret
+
+    try:
+        spreadsheet = _gc.open_by_key(sheet_id)
+    except Exception as e:
+        if "Response [404]" in str(e):
+            return True, -4
+        else:
+            # new call
+            return False
+    else:
+        _current_spreadsheet = spreadsheet
+        return True, 0
