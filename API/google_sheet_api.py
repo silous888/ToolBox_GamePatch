@@ -2,6 +2,7 @@ import gspread as _gspread
 from oauth2client.service_account import ServiceAccountCredentials as _sac
 
 import os as _os
+import time as _time
 
 try:
     from credentials import credentials_info as _credentials_info
@@ -21,6 +22,9 @@ _credentials_email = None
 
 _credentials_path = ".\\credentials.json"
 _gc = None
+
+_MAX_RETRIES = 100
+_WAIT_TIME = 2
 
 
 def __init() -> int:
@@ -76,3 +80,22 @@ def set_credentials_path(credentials_path=".\\credentials.json") -> None:
         _credentials_path = _os.path.join(credentials_path, "credentials.json")
     if _os.path.isfile(credentials_path):
         _credentials_path = credentials_path
+
+
+def _decorator_wait_token(func):
+    """wait for token if necessary
+
+    Args:
+        func (func): function to decorate, first return need to be a boolean of success of the function
+
+    Returns:
+        Tuple: returns of the decorated functions, except the first result. If no token after waiting, False
+    """
+    def wrapper():
+        for _ in range(_MAX_RETRIES):
+            results = func()
+            if results[0]:
+                return results[1:]
+            _time.sleep(_WAIT_TIME)
+        return False
+    return wrapper
