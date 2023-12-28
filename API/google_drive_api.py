@@ -114,16 +114,24 @@ def list_files() -> (list[list[str]] | int):
     ret = __init()
     if ret != 0:
         return ret
-    results = _drive_service.files().list().execute()
-    files = results.get('files', [])
     file_info_list = []
+    page_token = None
 
-    for file in files:
-        file_info_list.append([
-            file.get('name', 'N/A'),
-            file.get('id', 'N/A'),
-            file.get('mimeType', 'N/A')
-        ])
+    while True:
+        results = _drive_service.files().list(pageToken=page_token).execute()
+        files = results.get('files', [])
+
+        for file in files:
+            file_info_list.append([
+                file.get('name', 'N/A'),
+                file.get('id', 'N/A'),
+                file.get('mimeType', 'N/A')
+            ])
+
+        page_token = results.get('nextPageToken')
+        if not page_token:
+            break  # No more pages
+
     return file_info_list
 
 
