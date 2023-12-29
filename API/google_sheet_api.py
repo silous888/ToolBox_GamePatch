@@ -83,7 +83,7 @@ def set_credentials_path(credentials_path=".\\credentials.json") -> None:
         _credentials_path = credentials_path
 
 
-def _decorator_wait_token(func) -> (tuple | int):
+def _decorator_wait_token(func):
     """wait for token if necessary
 
     Args:
@@ -108,7 +108,7 @@ def _decorator_wait_token(func) -> (tuple | int):
 
 
 @_decorator_wait_token
-def open_sheet(sheet_id) -> int:
+def open_spreadsheet(sheet_id: str) -> int:
     """open a sheet for others functions
 
     Args:
@@ -140,3 +140,30 @@ def open_sheet(sheet_id) -> int:
     else:
         _current_spreadsheet = spreadsheet
         return True, 0
+
+
+@_decorator_wait_token
+def get_sheet(sheet_index: int) -> (list[list[str]] | int):
+    """open a sheet for others functions
+
+    Args:
+        sheet_number (int): index of the sheet, first is 0
+
+    Returns:
+        list[list[str]] | int: values in the sheet, error code otherwise
+
+    error code:
+    -3 if no token, end of waiting time
+    -4 if no spreadsheet opened
+    -5 if index not found
+    """
+    if _current_spreadsheet is None:
+        return True, -4
+    try:
+        values = _current_spreadsheet.get_worksheet(sheet_index).get_all_values()
+    except Exception as e:
+        if "not found" in str(e):
+            return True, -5
+        return False
+    else:
+        return True, values
