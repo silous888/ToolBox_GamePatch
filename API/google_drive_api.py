@@ -1,4 +1,4 @@
-from googleapiclient.discovery import build as _build
+from googleapiclient.discovery import build as __build
 from googleapiclient.http import MediaIoBaseDownload as _MediaIoBaseDownload
 from googleapiclient.http import MediaFileUpload as _MediaFileUpload
 from oauth2client.service_account import ServiceAccountCredentials as _sac
@@ -42,7 +42,7 @@ def __init() -> int:
             try:
                 credentials = _sac.from_json_keyfile_dict(_credentials_info, _scope)
                 _credentials_email = credentials.service_account_email
-                _drive_service = _build('drive', 'v3', credentials=credentials)
+                _drive_service = __build('drive', 'v3', credentials=credentials)
                 _is_credentials_correct = True
             except Exception:
                 _is_credentials_correct = False
@@ -50,7 +50,7 @@ def __init() -> int:
             try:
                 credentials = _sac.from_json_keyfile_name(_credentials_path, _scope)
                 _credentials_email = credentials.service_account_email
-                _drive_service = _build('drive', 'v3', credentials=credentials)
+                _drive_service = __build('drive', 'v3', credentials=credentials)
                 _is_credentials_correct = True
             except Exception:
                 _is_credentials_correct = False
@@ -78,7 +78,7 @@ def set_credentials_path(credentials_path=".\\credentials.json") -> None:
         _credentials_path = credentials_path
 
 
-def has_access_to_element(element_id) -> (bool | int):
+def has_access_to_element(element_id: str) -> (bool | int):
     """Check if the service account of the credentials has access to an element with the given ID.
 
     Args:
@@ -135,7 +135,7 @@ def list_files() -> (list[list[str]] | int):
     return file_info_list
 
 
-def get_id_by_name(name_element) -> (str | int):
+def get_id_by_name(name_element: str) -> (str | int):
     """get the id by the name of a file or folder
 
     Args:
@@ -164,7 +164,7 @@ def get_id_by_name(name_element) -> (str | int):
         return -4
 
 
-def download_file(file_id, local_folder=".\\") -> int:
+def download_file(file_id: str, local_folder=".\\") -> int:
     """download a file from google drive, by id.
     Can download every binary file (so png, txt, bin, ...).
     for google files, can download sheet as excel and doc as word.
@@ -228,7 +228,7 @@ def download_file(file_id, local_folder=".\\") -> int:
     return 0
 
 
-def download_files_in_folder(folder_id, local_folder=".\\", keep_folders=False) -> int:
+def download_files_in_folder(folder_id: str, local_folder=".\\", keep_folders=False) -> int:
     """download everything in a google drive folder
 
     Args:
@@ -273,16 +273,15 @@ def download_files_in_folder(folder_id, local_folder=".\\", keep_folders=False) 
     return ret
 
 
-def create_folder(folder_name, id_location) -> (str | int):
-    """create a folder in another folder
+def __create_element(element_name: str, id_location: str, mimeType: str) -> (str | int):
+    """create a Google Drive element
 
     Args:
-        folder_name (str): name the folder will have
-        id_location (str): id of a folder or file where to create the folder.
-                           If file, the folder will be in the same folder than this file.
+        doc_name (str): name the doc will have
+        id_location (str): id of a folderwhere to create the element.
 
     Returns:
-        int: id of the folder created. Error code otherwise.
+        int: id of the doc created. Error code otherwise.
 
     error code:
     -1 if no credentials file found
@@ -293,19 +292,73 @@ def create_folder(folder_name, id_location) -> (str | int):
     if ret != 0:
         return ret
 
-    folder_metadata = {
-        'name': folder_name,
-        'mimeType': 'application/vnd.google-apps.folder',
+    elem_metadata = {
+        'name': element_name,
+        'mimeType': mimeType,
         'parents': [id_location]
     }
     try:
-        folder = _drive_service.files().create(body=folder_metadata, fields='id').execute()
-        return folder['id']
+        element = _drive_service.files().create(body=elem_metadata, fields='id').execute()
+        return element['id']
     except Exception:
         return -3
 
 
-def upload(file_or_folder_path, id_location) -> int:
+def create_folder(folder_name: str, id_location: str) -> (str | int):
+    """create a folder in another folder
+
+    Args:
+        folder_name (str): name the folder will have
+        id_location (str): id of a folder where to create the folder.
+
+    Returns:
+        int: id of the folder created. Error code otherwise.
+
+    error code:
+    -1 if no credentials file found
+    -2 if credentials not correct
+    -3 if parent_folder_id not correct
+    """
+    __create_element(folder_name, id_location, 'application/vnd.google-apps.folder')
+
+
+def create_sheet(sheet_name: str, id_location: str) -> (str | int):
+    """create a Google Sheet
+
+    Args:
+        sheet_name (str): name the sheet will have
+        id_location (str): id of a folder where to create the sheet.
+
+    Returns:
+        int: id of the sheet created. Error code otherwise.
+
+    error code:
+    -1 if no credentials file found
+    -2 if credentials not correct
+    -3 if parent_folder_id not correct
+    """
+    __create_element(sheet_name, id_location, 'application/vnd.google-apps.spreadsheet')
+
+
+def create_doc(doc_name: str, id_location: str) -> (str | int):
+    """create a Google Doc
+
+    Args:
+        doc_name (str): name the doc will have
+        id_location (str): id of a folder where to create the doc.
+
+    Returns:
+        int: id of the doc created. Error code otherwise.
+
+    error code:
+    -1 if no credentials file found
+    -2 if credentials not correct
+    -3 if parent_folder_id not correct
+    """
+    __create_element(doc_name, id_location, 'application/vnd.google-apps.document')
+
+
+def upload(file_or_folder_path: str, id_location: str) -> int:
     """upload a file, or a folder, in the drive id location
 
     Args:
@@ -354,7 +407,7 @@ def upload(file_or_folder_path, id_location) -> int:
     return ret
 
 
-def delete_file(file_id) -> int:
+def delete_file(file_id: str) -> int:
     """delete a file or folder in drive,
     only if owned by the service account
 
