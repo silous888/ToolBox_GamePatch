@@ -23,6 +23,8 @@ _credentials_email = None
 _credentials_path = ".\\credentials.json"
 _gc = None
 _current_spreadsheet = None
+_last_sheet = None
+_last_sheet_index = None
 
 _MAX_RETRIES = 100
 _WAIT_TIME = 2
@@ -124,6 +126,8 @@ def open_spreadsheet(sheet_id: str) -> int:
     -4 if sheet id not correct
     """
     global _current_spreadsheet
+    global _last_sheet
+    global _last_sheet_index
 
     ret = __init()
     if ret != 0:
@@ -134,20 +138,56 @@ def open_spreadsheet(sheet_id: str) -> int:
     except Exception as e:
         if "Response [404]" in str(e):
             return True, -4
-        else:
-            # new call
-            return False
+        return False
     else:
         _current_spreadsheet = spreadsheet
+        _last_sheet = None
+        _last_sheet_index = None
         return True, 0
 
 
 @_decorator_wait_token
-def get_sheet(sheet_index: int) -> (list[list[str]] | int):
+def _open_sheet(sheet_index: int) -> int:
     """open a sheet for others functions
+    change the value of the global variables "_last_sheet" and
+    "_last_sheet_index"
 
     Args:
-        sheet_number (int): index of the sheet, first is 0
+        sheet_index (int): index of the sheet, first is 0
+
+    Returns:
+        int : 0 if no problem, error code otherwise
+
+    error code:
+    -3 if no token, end of waiting time
+    -4 if no spreadsheet opened
+    -5 if index not found
+    """
+    global _last_sheet
+    global _last_sheet_index
+
+    if _current_spreadsheet is None:
+        return True, -4
+
+    if sheet_index != _last_sheet_index:
+        try:
+            last_sheet = _current_spreadsheet.get_worksheet(sheet_index)
+        except Exception as e:
+            if "not found" in str(e):
+                return True, -5
+            return False
+        else:
+            _last_sheet = last_sheet
+            _last_sheet_index = sheet_index
+            return True, 0
+
+
+@_decorator_wait_token
+def get_sheet(sheet_index: int) -> (list[list[str]] | int):
+    """get the values in a sheet
+
+    Args:
+        sheet_index (int): index of the sheet, first is 0
 
     Returns:
         list[list[str]] | int: values in the sheet, error code otherwise
@@ -157,13 +197,12 @@ def get_sheet(sheet_index: int) -> (list[list[str]] | int):
     -4 if no spreadsheet opened
     -5 if index not found
     """
-    if _current_spreadsheet is None:
-        return True, -4
+    ret = _open_sheet(sheet_index)
+    if ret != 0:
+        return ret
     try:
-        values = _current_spreadsheet.get_worksheet(sheet_index).get_all_values()
-    except Exception as e:
-        if "not found" in str(e):
-            return True, -5
+        values = _last_sheet.get_all_values()
+    except Exception:
         return False
     else:
         return True, values
