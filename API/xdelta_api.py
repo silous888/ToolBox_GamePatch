@@ -77,7 +77,7 @@ def create_patch(original_file, patched_file, name_patch_file="", patch_path="",
         return -4
 
     if len(name_patch_file) == 0:
-        name_patch_file = _os.path._splitext(_os.path.basename(original_file))[0]
+        name_patch_file = _os.path.splitext(_os.path.basename(original_file))[0]
     if not patch_path.endswith(_os.path.sep):
         patch_path = _os.path.join(patch_path, '')
 
@@ -100,15 +100,14 @@ def create_patch(original_file, patched_file, name_patch_file="", patch_path="",
     return output.returncode
 
 
-def apply_patch(file_to_patch, patch_file, name_patched_file="") -> int:
+def apply_patch(file_to_patch: str, patch_file: str, overwrite=True, name_patched_file="") -> int:
     """Create a xdelta3 patch file
 
     Args:
-        file_no_patch (str): original file path
-        file_patched (str): patched file path, so original file with modifications
-        name_patch_file (str, optional): patch file name without ".xdelta" part. Defaults, name of file_no_patch.
-        path_patch (str, optional): path of patch file. Defaults to exec repertory.
-        overwrite (bool, optional): overwrite or not patch file. Defaults to True.
+        file_to_patch (str): original file path
+        patch_file (str): xdelta patch file path
+        overwrite (bool, optional): overwrite or not file_to_patch file. Defaults to True.
+        name_patched_file (str, optional): path of for new patched file, need to be fill if overwrite is False
 
     Returns:
         int: 0 if the patch file is created, otherwise, return an error code.
@@ -119,6 +118,7 @@ def apply_patch(file_to_patch, patch_file, name_patched_file="") -> int:
     -3 if "patch_file" is not found or is not a file
     -4 if the command has a problem
     -5 if xdelta exe not found
+    -6 if overwrite is False and name_patched_file is empty
     """
     def overwrite_original_file():
         _os.remove(file_to_patch)
@@ -134,10 +134,11 @@ def apply_patch(file_to_patch, patch_file, name_patched_file="") -> int:
 
     overwrite = False
 
-    if len(name_patched_file) == 0:
+    if len(name_patched_file) == 0 and overwrite:
         splitname = _os.path.splitext(_os.path.basename(file_to_patch))
         name_patched_file = _os.path.dirname(file_to_patch) + splitname[0] + "n" + splitname[1]
-        overwrite = True
+    elif len(name_patched_file) == 0 and not overwrite:
+        return -6
 
     if _find_xdelta() != 0:
         return -5
